@@ -131,6 +131,7 @@ nav button.on{color:var(--y)}
 #toast.on{opacity:1}
 .im{background:#f0f0f0;overflow:hidden;color:#c4c4c4;display:flex;align-items:center;justify-content:center}.im img{width:100%;height:100%;object-fit:cover;display:block}.im svg,.sh svg{width:42%;height:42%}.sh{background:#e4e4e4;color:#bbb}.sh img{width:100%;height:100%;object-fit:cover}.sh svg{width:70px;height:70px}.ban{padding:0;background:none}.ban img{display:block;width:100%;border-radius:14px}.ban.nb{padding:18px;background:linear-gradient(120deg,#fff3c4,#ffd04f 60%,#f0a500)}.ban:not(.nb) .tx{display:none}.cat div{background:none}.cat img{width:64px;height:64px;object-fit:contain}
 .cats{justify-content:space-around;overflow:visible;gap:6px}.cat{min-width:0;font-size:13px}.cat img{width:72px;height:72px}
+.cat>div{font-size:0;background:none}
 </style>
 </head>
 <body>
@@ -142,7 +143,7 @@ nav button.on{color:var(--y)}
     <div class="addr" onclick="setAddr()"><span style="vertical-align:-5px"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></span> <span id="ad1">Chưa chọn địa chỉ</span></div>
   </div>
   <div class="srch"><span><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg></span><input id="q" placeholder='Tìm kiếm "Bún bò Hu"' oninput="renderHome()"></div>
-  <div class="cats"><div class="cat"><div><img src="img/cat-1.png" alt="Đồ ăn"></div>Đồ ăn</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-2.png" alt="Giao hàng"></div>Giao hàng</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-3.png" alt="Mua sắm"></div>Mua sắm</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-4.png" alt="Dịch vụ khác"></div>Dịch vụ khác</div></div>
+  <div class="cats"><div class="cat"><div><img src="cat-1.png" alt="Đồ ăn"></div>Đồ ăn</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-2.png" alt="Giao hàng"></div>Giao hàng</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-3.png" alt="Mua sắm"></div>Mua sắm</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-4.png" alt="Dịch vụ khác"></div>Dịch vụ khác</div></div>
   <div class="ban"><img src="img/banner.jpg" alt="" onerror="this.parentNode.classList.add('nb');this.remove()"><div class="tx"><h3>TAM NÔNG GIẢM ĐẾN</h3><h2>50% PHÍ SHIP</h2><small>Trải nghiệm dịch vụ tiện lợi ngay hôm nay!</small></div></div>
   <div class="sec"><span>🤔</span><div><h4>Hôm nay ăn gì?</h4><p>Gợi ý cho bạn những món ngon</p></div></div>
   <div class="hs" id="h1"></div>
