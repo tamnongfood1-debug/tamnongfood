@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tam Nông - Tài xế</title><link rel="stylesheet" href="staff.css"></head><body>
+<div id="lg"></div>
+<div id="ap" hidden>
+<header><b id="sn">Tài xế</b><button onclick="logout()">Thoát</button></header>
+<div class="tabs"><button class="on" data-t="0">Đơn chờ nhận</button><button data-t="1">Đang giao</button><button data-t="2">Lịch sử</button></div>
+<main id="v"></main>
+</div>
+<script type="module">
+import {gate,$,money,tm,byTime} from './staff.js';
+import {db} from './firebase-config.js';
+import {collection,query,where,onSnapshot,doc,updateDoc,runTransaction} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+gate('shipper','Tam Nông · Tài xế',(u,p)=>{
+ $('#sn').textContent='Xin chào, '+p.name;let tab=0,wait=[],mine=[];
+ const map=a=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a);
+ const card=(o,btn)=>'<div class="c"><div class="row"><h4>'+o.shopName+'</h4><span class="pr">'+money(o.fee+(o.tip||0))+' công</span></div><p>Lấy: '+o.shopName+'</p><p>Giao: <a target="_blank" href="'+map(o.addr)+'">'+o.addr+'</a></p><p>'+o.name+' · <a href="tel:'+o.phone+'">'+o.phone+'</a></p><p>'+o.items.map(i=>i.q+' x '+i.n).join(', ')+'</p><p>Thu khách: <b class="pr">'+money(o.total)+'</b> '+tm(o)+'</p>'+btn+'</div>';
+ function r(){let h='';
+  if(tab===0)h=wait.map(o=>card(o,'<button class="b" onclick="take(\''+o.id+'\')">Nhận giao đơn này</button>')).join('')||'<p class="e">Chưa có đơn nào chờ tài xế</p>';
+  if(tab===1)h=mine.filter(o=>o.status==='delivering').map(o=>card(o,'<button class="b" onclick="fin(\''+o.id+'\')">Đã giao xong</button>')).join('')||'<p class="e">Bạn chưa nhận đơn nào</p>';
+  if(tab===2){const d=mine.filter(o=>o.status==='done');h='<div class="c row"><b>Đã giao: '+d.length+' đơn</b><b class="pr">Công: '+money(d.reduce((a,o)=>a+(o.fee||0)+(o.tip||0),0))+'</b></div>'+d.map(o=>card(o,'')).join('')}
+  $('#v').innerHTML=h}
+ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=+b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));r()});
+ window.take=async id=>{try{await runTransaction(db,async t=>{const ref=doc(db,'orders',id),s=await t.get(ref);if(s.data().status!=='ready'||s.data().shipperId)throw 0;t.update(ref,{status:'delivering',shipperId:u.uid,shipperName:p.name,shipperPhone:p.phone})});tab=1;document.querySelectorAll('.tabs button')[1].click()}catch(e){alert('Đơn này đã có tài xế khác nhận.')}};
+ window.fin=id=>confirm('Xác nhận đã giao và thu tiền?')&&updateDoc(doc(db,'orders',id),{status:'done'});
+ onSnapshot(query(collection(db,'orders'),where('status','==','ready')),s=>{wait=s.docs.map(d=>({id:d.id,...d.data()})).filter(o=>!o.shipperId).sort(byTime);r()});
+ onSnapshot(query(collection(db,'orders'),where('shipperId','==',u.uid)),s=>{mine=s.docs.map(d=>({id:d.id,...d.data()})).sort(byTime);r()});
+});
+</script></body></html>

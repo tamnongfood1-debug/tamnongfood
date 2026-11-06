@@ -130,6 +130,7 @@ nav button.on{color:var(--y)}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;font-size:15px;opacity:0;transition:.3s;z-index:99;pointer-events:none}
 #toast.on{opacity:1}
 .im{background:#f0f0f0;overflow:hidden;color:#c4c4c4;display:flex;align-items:center;justify-content:center}.im img{width:100%;height:100%;object-fit:cover;display:block}.im svg,.sh svg{width:42%;height:42%}.sh{background:#e4e4e4;color:#bbb}.sh img{width:100%;height:100%;object-fit:cover}.sh svg{width:70px;height:70px}.ban{padding:0;background:none}.ban img{display:block;width:100%;border-radius:14px}.ban.nb{padding:18px;background:linear-gradient(120deg,#fff3c4,#ffd04f 60%,#f0a500)}.ban:not(.nb) .tx{display:none}.cat div{background:none}.cat img{width:64px;height:64px;object-fit:contain}
+.cats{justify-content:space-around;overflow:visible;gap:6px}.cat{min-width:0;font-size:13px}.cat img{width:72px;height:72px}
 </style>
 </head>
 <body>
@@ -141,11 +142,7 @@ nav button.on{color:var(--y)}
     <div class="addr" onclick="setAddr()"><span style="vertical-align:-5px"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></span> <span id="ad1">Chưa chọn địa chỉ</span></div>
   </div>
   <div class="srch"><span><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg></span><input id="q" placeholder='Tìm kiếm "Bún bò Hu"' oninput="renderHome()"></div>
-  <div class="cats">
-    <div class="cat"><div><img src="img/cat-1.png" data-f="🍱" onerror="this.outerHTML=this.dataset.f"></div>Đồ ăn</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-2.png" data-f="🛵" onerror="this.outerHTML=this.dataset.f"></div>Xe Ôm</div>
-    <div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-3.png" data-f="📦" onerror="this.outerHTML=this.dataset.f"></div>Giao Hàng</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-4.png" data-f="🛍️" onerror="this.outerHTML=this.dataset.f"></div>Mua Hộ</div>
-    <div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-5.png" data-f="🚗" onerror="this.outerHTML=this.dataset.f"></div>Lái Hộ</div>
-  </div>
+  <div class="cats"><div class="cat"><div><img src="img/cat-1.png" alt="Đồ ăn"></div>Đồ ăn</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-2.png" alt="Giao hàng"></div>Giao hàng</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-3.png" alt="Mua sắm"></div>Mua sắm</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="img/cat-4.png" alt="Dịch vụ khác"></div>Dịch vụ khác</div></div>
   <div class="ban"><img src="img/banner.jpg" alt="" onerror="this.parentNode.classList.add('nb');this.remove()"><div class="tx"><h3>TAM NÔNG GIẢM ĐẾN</h3><h2>50% PHÍ SHIP</h2><small>Trải nghiệm dịch vụ tiện lợi ngay hôm nay!</small></div></div>
   <div class="sec"><span>🤔</span><div><h4>Hôm nay ăn gì?</h4><p>Gợi ý cho bạn những món ngon</p></div></div>
   <div class="hs" id="h1"></div>
@@ -216,41 +213,42 @@ const SH=[
 ];
 const PHS='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 11h16a1 1 0 0 0 0-2 8 8 0 0 0-16 0 1 1 0 0 0 0 2zM3 13h18v2H3zM5 17h14a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z"/></svg>';
 const IM=src=>`<img src="${src}" alt="" loading="lazy" onerror="this.outerHTML=PHS">`;
+const MI=(s,i)=>/^(https?:|img\/|data:)/.test(s.m[i][4]||'')?s.m[i][4]:MI(s,i);
 const SODA=[['Soda Việt Quất',27000,'🫐'],['Soda Chanh Dây',27000,'🍋'],['Soda Dâu',27000,'🍓'],['Soda Đào',27000,'🍑']];
-let S={addr:'',shop:null,cart:[],tip:0,door:false,orders:[],cur:null,qty:1,tab:0};
+let S={addr:'',shop:null,cart:[],tip:0,door:false,orders:[],cur:null,qty:1,tab:0,name:localStorage.tn_n||'',phone:localStorage.tn_p||''};
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800)}
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id));const main=['home','act','inb','acc'].includes(id);$('#nav').style.display=main?'flex':'none';$('#slot').style.display=id==='home'?'flex':'none'}
 function go(id,i){document.querySelectorAll('nav button').forEach((b,k)=>b.classList.toggle('on',k===i));show(id);if(id==='act')actTab(0,document.querySelector('#act .tabs button'))}
 function setAddr(){const a=prompt('Nhập địa chỉ giao hàng (xã/thôn, số nhà...):',S.addr);if(a!==null&&a.trim()){S.addr=a.trim();$('#ad1').textContent=S.addr;toast('Đã lưu địa chỉ');if($('#co').classList.contains('on'))renderCo()}}
 function renderHome(){
   const q=$('#q').value.toLowerCase().trim(),L=SH.filter(s=>!q||s.n.toLowerCase().includes(q)||s.m.some(m=>m[0].toLowerCase().includes(q)));
-  const cd=s=>`<div class="card" onclick="openShop(${s.id})"><div class="im">${IM('img/q'+s.id+'.jpg')}</div><h5>${s.n}</h5><p>⭐ 5.0 · 30 phút</p></div>`;
+  const cd=s=>`<div class="card" onclick="openShop(${s.id})"><div class="im">${IM((s.i||'img/q'+s.id+'.jpg'))}</div><h5>${s.n}</h5><p>⭐ 5.0 · 30 phút</p></div>`;
   $('#h1').innerHTML=L.slice(0,4).map(cd).join('')||'<p style="padding:14px;color:#888">Không tìm thấy quán nào</p>';
-  $('#h2').innerHTML=L.filter(s=>s.hot).map(s=>`<div class="hot" onclick="openShop(${s.id})"><div class="rb">HOT</div><div class="top"><div class="im">${IM('img/q'+s.id+'.jpg')}</div><div><h5>${s.n}</h5><p style="color:#666;margin-top:6px">⭐ 5.0 🕒 30 phút</p><span class="tag">Món ngon</span><span class="tag">Được yêu thích</span></div></div><div class="mini">${s.m.slice(0,3).map((m,k)=>`<div><div class="im">${IM('img/'+s.id+'-'+k+'.jpg')}</div>${m[0]}<b>${f(m[2])}</b></div>`).join('')}</div></div>`).join('');
+  $('#h2').innerHTML=L.filter(s=>s.hot).map(s=>`<div class="hot" onclick="openShop(${s.id})"><div class="rb">HOT</div><div class="top"><div class="im">${IM((s.i||'img/q'+s.id+'.jpg'))}</div><div><h5>${s.n}</h5><p style="color:#666;margin-top:6px">⭐ 5.0 🕒 30 phút</p><span class="tag">Món ngon</span><span class="tag">Được yêu thích</span></div></div><div class="mini">${s.m.slice(0,3).map((m,k)=>`<div><div class="im">${IM(MI(s,k))}</div>${m[0]}<b>${f(m[2])}</b></div>`).join('')}</div></div>`).join('');
   $('#h3').innerHTML=L.slice().reverse().map(cd).join('');
 }
 function openShop(id){
   const s=SH[id];if(S.shop!==id){S.cart=[];S.shop=id}
-  $('#store').innerHTML=`<div class="sh"><button class="bk" onclick="show('home')">←</button>${IM('img/q'+s.id+'.jpg')}</div>
+  $('#store').innerHTML=`<div class="sh"><button class="bk" onclick="show('home')">←</button>${IM((s.i||'img/q'+s.id+'.jpg'))}</div>
   <div class="si"><h2>${s.n}</h2><div class="meta"><span>⭐ <b>5.0</b> (0) · 🕒 30 phút chuẩn bị món</span></div>
   <div class="meta"><span>🕗 Hôm nay: 08:00 - 22:00</span><span class="op">✔ Đang mở cửa</span></div>
   <div class="pr"><span><b>Ưu đãi</b>Giảm 1K cho đơn từ 1K</span><span><b>Ưu đãi</b>Giảm 12K cho đơn đầu</span></div>
   <button class="bt" onclick="toast('Tính năng đặt nhóm sắp ra mắt')">👥 Đặt nhóm</button><button class="bt" onclick="toast('Đã sao chép liên kết')">🔗 Chia sẻ</button></div>
   <div class="gap"></div><div class="big" style="font-size:22px;color:#666">KHÁC</div>
-  ${s.m.map((m,i)=>`<div class="dish"><div class="im">${IM('img/'+s.id+'-'+i+'.jpg')}</div><div><h4>${m[0]}</h4><p>${m[1]}</p><div class="pc">${f(m[2])}${m[3]?`<s>${f(m[3])}</s><em>-${Math.round((1-m[2]/m[3])*100)}%</em>`:''}</div></div><button class="plus" onclick="openItem(${i})">+</button></div>`).join('')}
+  ${s.m.map((m,i)=>`<div class="dish"><div class="im">${IM(MI(s,i))}</div><div><h4>${m[0]}</h4><p>${m[1]}</p><div class="pc">${f(m[2])}${m[3]?`<s>${f(m[3])}</s><em>-${Math.round((1-m[2]/m[3])*100)}%</em>`:''}</div></div><button class="plus" onclick="openItem(${i})">+</button></div>`).join('')}
   <div class="bar" id="cb" style="display:none"><button class="btn" onclick="renderCo()"></button></div>`;
   show('store');updBar();
 }
 function updBar(){const b=$('#cb');if(!b)return;const n=S.cart.reduce((a,c)=>a+c.q,0);b.style.display=n?'block':'none';b.firstChild.textContent=`XEM GIỎ HÀNG (${n}) - ${f(S.cart.reduce((a,c)=>a+c.p*c.q,0))}`}
 function openItem(i){S.cur=i;S.qty=1;const m=SH[S.shop].m[i];
   $('#item').innerHTML=`<div class="top2"><button class="bk" onclick="show('store')">‹</button>Thêm món</div>
-  <div style="display:flex;gap:14px;padding:14px"><div class="dish" style="padding:0"><div class="im" style="width:110px;height:110px">${IM('img/'+S.shop+'-'+S.cur+'.jpg')}</div></div><div style="flex:1"><h3 style="font-size:22px">${m[0]}</h3><p style="color:#888;margin:8px 0">${m[1]}</p>
+  <div style="display:flex;gap:14px;padding:14px"><div class="dish" style="padding:0"><div class="im" style="width:110px;height:110px">${IM(MI(SH[S.shop],S.cur))}</div></div><div style="flex:1"><h3 style="font-size:22px">${m[0]}</h3><p style="color:#888;margin:8px 0">${m[1]}</p>
   <div style="display:flex;justify-content:space-between;align-items:center"><div class="pc" style="color:#f0a500">${f(m[2])}${m[3]?`<s style="display:block">${f(m[3])}</s>`:''}</div><div class="qty"><button onclick="q(-1)">−</button><span id="qv">1</span><button class="p" onclick="q(1)">+</button></div></div></div></div>
   <div class="row2" style="border-top:1px solid #eee"><input id="nt" placeholder="📝 Ghi chú cho quán" style="border:0;outline:0;width:100%;font-size:17px"></div>
   <div class="bar"><button class="btn" id="ab" onclick="addCart()"></button></div>`;
   q(0);show('item')}
 function q(d){S.qty=Math.max(1,S.qty+d);$('#qv').textContent=S.qty;const m=SH[S.shop].m[S.cur];$('#ab').textContent=`THÊM VÀO GIỎ HÀNG - ${f(m[2]*S.qty)}`}
-function addCart(){const m=SH[S.shop].m[S.cur],e=S.cart.find(c=>c.n===m[0]);if(e)e.q+=S.qty;else S.cart.push({n:m[0],p:m[2],o:m[3]||m[2],q:S.qty,e:'img/'+S.shop+'-'+S.cur+'.jpg',note:$('#nt').value});show('store');updBar();toast('Đã thêm vào giỏ hàng')}
+function addCart(){const m=SH[S.shop].m[S.cur],e=S.cart.find(c=>c.n===m[0]);if(e)e.q+=S.qty;else S.cart.push({n:m[0],p:m[2],o:m[3]||m[2],q:S.qty,e:MI(SH[S.shop],S.cur),note:$('#nt').value});show('store');updBar();toast('Đã thêm vào giỏ hàng')}
 function addSoda(i){const s=SODA[i],e=S.cart.find(c=>c.n===s[0]);if(e)e.q++;else S.cart.push({n:s[0],p:s[1],o:s[1],q:1,e:'img/soda-'+i+'.jpg',note:''});renderCo()}
 function calc(){const sub=S.cart.reduce((a,c)=>a+c.o*c.q,0),paid=S.cart.reduce((a,c)=>a+c.p*c.q,0),fee=12000,dis=1000,door=S.door?3000:0;
   const total=sub+fee-dis-1000+S.tip+door;return{sub,fee,dis,door,total,orig:sub+fee+S.tip+door}}
@@ -259,6 +257,7 @@ function renderCo(){
   const c=calc(),s=SH[S.shop];
   $('#co').innerHTML=`<div class="top2"><button class="bk" onclick="show('store')">←</button>Xác nhận đơn hàng</div>
   <div class="row2" onclick="setAddr()"><span>📍 ${S.addr||'<span class="mu">Chưa chọn địa chỉ giao hàng</span>'}</span><span class="add">${S.addr?'Sửa':'Thêm'}</span></div>
+  <div class="row2"><input placeholder="Họ tên người nhận" value="${S.name}" oninput="S.name=this.value;chk()" style="border:0;outline:0;width:100%;font-size:17px"></div><div class="row2"><input placeholder="Số điện thoại" inputmode="tel" value="${S.phone}" oninput="S.phone=this.value;chk()" style="border:0;outline:0;width:100%;font-size:17px"></div>
   <div class="row2"><label><input type="checkbox" style="width:22px;height:22px;vertical-align:middle;margin-right:10px">Đặt hộ người khác</label></div><div class="gap"></div>
   <div class="row2" style="font-weight:700;border:0">🏪 ${s.n}</div>
   ${S.cart.map(i=>`<div class="ci"><div class="im">${IM(i.e)}</div><div style="flex:1">${i.q} X ${i.n}${i.note?`<small style="display:block;color:#999">${i.note}</small>`:''}</div><div style="text-align:right;font-size:18px">${f(i.p*i.q)}${i.o!==i.p?`<s>${f(i.o*i.q)}</s>`:''}</div></div>`).join('')}
@@ -276,14 +275,31 @@ function renderCo(){
   <div class="tt"><span>Thành tiền</span><span>${f(c.total)}</span></div><small>Giá đã bao gồm thuế VAT</small></div>
   <div class="bar"><div class="tot"><span>Tổng cộng</span><b>${f(c.total)}</b></div><div class="tot" style="font-weight:400;font-size:16px;color:#666"><span>Bạn tiết kiệm được ${f(c.orig-c.total)} 🎉</span><s>${f(c.orig)}</s></div>
   ${S.addr?'':'<div class="err">Bạn chưa chọn địa chỉ giao hàng. Vui lòng thêm hoặc chọn địa chỉ để tiếp tục.</div>'}
-  <button class="btn" ${S.addr?'':'disabled'} onclick="order()">Đặt ngay</button></div>`;
+  <button class="btn" ${S.addr&&S.name&&S.phone?'':'disabled'} onclick="order()">Đặt ngay</button></div>`;
   show('co')}
-function order(){const c=calc();S.orders.unshift({shop:SH[S.shop].n,items:S.cart.map(i=>i.q+' x '+i.n).join(', '),total:c.total,addr:S.addr,t:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});S.cart=[];S.tip=0;S.door=false;toast('Đặt hàng thành công! 🎉');go('act',1)}
+function chk(){localStorage.tn_n=S.name;localStorage.tn_p=S.phone;const b=document.querySelector('#co .bar .btn');if(b)b.disabled=!(S.addr&&S.name&&S.phone)}
+async function order(){const c=calc(),s=SH[S.shop];chk();
+ const o={shopId:s.fid||'',shopName:s.n,items:S.cart.map(i=>({n:i.n,q:i.q,p:i.p})),total:c.total,fee:c.fee,tip:S.tip,door:S.door,addr:S.addr,name:S.name,phone:S.phone,status:'new'};
+ try{if(window.FB)await FB.place(o);else S.orders.unshift({...o,id:'l'+Date.now()})}catch(e){console.error(e);toast('Không gửi được đơn, thử lại nhé');return}
+ S.cart=[];S.tip=0;S.door=false;toast('Đặt hàng thành công!');go('act',1)}
+const SL={new:'Chờ quán nhận',accepted:'Quán đang chuẩn bị',ready:'Chờ tài xế nhận',delivering:'Tài xế đang giao',done:'Đã giao',cancelled:'Đã hủy'};
 function actTab(i,b){S.tab=i;document.querySelectorAll('#act .tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  $('#actb').innerHTML=i===0&&S.orders.length?S.orders.map(o=>`<div class="ord"><b>🛵 ${o.shop}</b><p style="margin:6px 0">${o.items}</p><p>📍 ${o.addr}</p><p style="margin-top:6px"><b style="color:var(--r)">${f(o.total)}</b> · ${o.t} · <span style="color:#1a9a3a">Đang chuẩn bị</span></p></div>`).join(''):i===0?'<div class="empty"><i>🛍️</i><h4>Chưa có đơn hàng nào</h4>Đơn hàng của bạn sẽ xuất hiện tại đây sau khi bạn đặt hàng thành công</div>':'<div class="empty"><i>🧾</i>Chưa có lịch sử đơn hàng</div>'}
+  const L=S.orders.filter(o=>(i===0)===!['done','cancelled'].includes(o.status));
+  $('#actb').innerHTML=L.length?L.map(o=>`<div class="ord"><b>${o.shopName}</b><p style="margin:6px 0">${o.items.map(x=>x.q+' x '+x.n).join(', ')}</p><p>${o.addr}</p><p style="margin-top:6px"><b style="color:var(--r)">${f(o.total)}</b> · <span style="color:#1a9a3a">${SL[o.status]||o.status}</span></p>${o.shipperName?`<p>Tài xế: ${o.shipperName} · <a href="tel:${o.shipperPhone}">${o.shipperPhone}</a></p>`:''}</div>`).join(''):i===0?'<div class="empty"><h4>Chưa có đơn hàng nào</h4>Đơn hàng của bạn sẽ xuất hiện tại đây sau khi bạn đặt hàng thành công</div>':'<div class="empty">Chưa có lịch sử đơn hàng</div>'}
 function inTab(i,b){document.querySelectorAll('#inb .tabs button').forEach(x=>x.classList.toggle('on',x===b));$('#inbb').innerHTML=i?'<i>🔔</i>Chưa có thông báo nào':'<i>💬</i>Chưa có tin nhắn nào'}
 function spin(){const s=SH[Math.floor(Math.random()*SH.length)];toast('🎰 Hôm nay ăn: '+s.n);setTimeout(()=>openShop(s.id),900)}
 renderHome();show('home');actTab(0,document.querySelector('#act .tabs button'));
+</script>
+<script type="module">
+import {db,cfg} from './firebase-config.js';
+import {collection,getDocs,addDoc,doc,onSnapshot,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+if(!cfg.apiKey.startsWith('DÁN')){
+ try{const r=await getDocs(collection(db,'shops'));const L=r.docs.map(d=>({fid:d.id,...d.data()})).filter(x=>x.open!==false);
+  if(L.length){SH.length=0;L.forEach((x,i)=>SH.push({id:i,fid:x.fid,n:x.name,i:x.img||'',hot:i<2,m:(x.menu||[]).map(m=>[m.n,m.d||'',m.p,m.o||0,m.img||''])}));S.shop=null;S.cart=[];renderHome()}}catch(e){console.warn(e)}
+ const track=id=>onSnapshot(doc(db,'orders',id),d=>{if(!d.exists())return;const o={id,...d.data()},k=S.orders.findIndex(x=>x.id===id);k<0?S.orders.push(o):S.orders[k]=o;S.orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));if($('#act').classList.contains('on'))actTab(S.tab,document.querySelectorAll('#act .tabs button')[S.tab])});
+ JSON.parse(localStorage.tn_o||'[]').forEach(track);
+ window.FB={async place(o){const r=await addDoc(collection(db,'orders'),{...o,createdAt:serverTimestamp()});const a=JSON.parse(localStorage.tn_o||'[]');a.push(r.id);localStorage.tn_o=JSON.stringify(a);track(r.id);return r.id}};
+}
 </script>
 </body>
 </html>

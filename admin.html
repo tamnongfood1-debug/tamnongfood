@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tam Nông - Admin</title><link rel="stylesheet" href="staff.css"></head><body>
+<div id="lg"></div>
+<div id="ap" hidden>
+<header><b>Tam Nông · Admin</b><button onclick="logout()">Thoát</button></header>
+<div class="tabs"><button class="on" data-t="0">Thống kê</button><button data-t="1">Đơn hàng</button><button data-t="2">Quán</button><button data-t="3">Tài khoản</button></div>
+<main id="v"></main>
+</div>
+<script type="module">
+import {gate,$,money,ST,tm,byTime} from './staff.js';
+import {db} from './firebase-config.js';
+import {collection,onSnapshot,doc,updateDoc,addDoc,deleteDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+gate('admin','Tam Nông · Admin',()=>{
+ let tab=0,O=[],S=[],U=[];
+ const day=o=>o.createdAt&&new Date(o.createdAt.seconds*1000).toDateString()===new Date().toDateString();
+ function r(){let h='';
+  if(tab===0){const t=O.filter(day),d=t.filter(o=>o.status==='done'),tp={};d.forEach(o=>tp[o.shopName]=(tp[o.shopName]||0)+o.total);
+   h='<div class="st"><div class="c"><b>'+t.length+'</b>Đơn hôm nay</div><div class="c"><b>'+t.filter(o=>!['done','cancelled'].includes(o.status)).length+'</b>Đang xử lý</div><div class="c"><b>'+d.length+'</b>Đã giao</div><div class="c"><b>'+money(d.reduce((a,o)=>a+o.total,0))+'</b>Doanh thu</div></div><div class="c"><h4>Doanh thu theo quán (hôm nay)</h4>'+(Object.entries(tp).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<p>'+k+': <b>'+money(v)+'</b></p>').join('')||'<p>Chưa có</p>')+'</div>'}
+  if(tab===1)h=O.slice(0,80).map(o=>'<div class="c"><div class="row"><h4>'+o.shopName+'</h4><span class="tg '+o.status+'">'+ST[o.status]+'</span></div><p>'+tm(o)+' · '+o.name+' · '+o.phone+'</p><p>'+o.addr+'</p><p>'+o.items.map(i=>i.q+' x '+i.n).join(', ')+'</p><p class="pr">'+money(o.total)+(o.shipperName?' · Tài xế: '+o.shipperName:'')+'</p>'+(['done','cancelled'].includes(o.status)?'':'<button class="b s r" onclick="st(\''+o.id+'\',\'cancelled\')">Hủy đơn</button>')+'</div>').join('')||'<p class="e">Chưa có đơn</p>';
+  if(tab===2)h='<div class="f"><b>Thêm quán mới</b><input id="sname" placeholder="Tên quán"><input id="simg" placeholder="Link ảnh quán (có thể bỏ trống)"><button class="b" onclick="addShop()">Tạo quán</button></div>'+S.map(s=>'<div class="c row"><div><h4>'+s.name+'</h4><p>'+(s.menu||[]).length+' món · '+(s.open===false?'Đang đóng':'Đang mở')+'</p><p style="font-size:12px;color:#999">ID: '+s.id+'</p></div><div><button class="b s g" onclick="tgl(\''+s.id+'\','+(s.open===false)+')">'+(s.open===false?'Mở':'Đóng')+'</button><button class="b s r" onclick="delShop(\''+s.id+'\')">Xóa</button></div></div>').join('');
+  if(tab===3)h=U.filter(u=>u.role!=='admin').map(u=>'<div class="c"><div class="row"><h4>'+u.name+'</h4><span class="tg '+(u.approved?'done':'new')+'">'+(u.role==='shop'?'Bán hàng':'Tài xế')+' · '+(u.approved?'Đã duyệt':'Chờ duyệt')+'</span></div><p>'+u.email+' · '+u.phone+'</p>'+(u.role==='shop'?'<select id="sel'+u.id+'"><option value="">-- Chọn quán --</option>'+S.map(s=>'<option value="'+s.id+'"'+(u.shopId===s.id?' selected':'')+'>'+s.name+'</option>').join('')+'</select>':'')+'<button class="b s" onclick="appr(\''+u.id+'\',\''+u.role+'\')">'+(u.approved?'Cập nhật':'Duyệt')+'</button>'+(u.approved?'<button class="b s r" onclick="blk(\''+u.id+'\')">Khóa</button>':'')+'</div>').join('')||'<p class="e">Chưa có tài khoản đăng ký</p>';
+  $('#v').innerHTML=h}
+ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=+b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));r()});
+ window.st=(id,s)=>confirm('Hủy đơn này?')&&updateDoc(doc(db,'orders',id),{status:s});
+ window.addShop=async()=>{const n=$('#sname').value.trim();if(!n)return;await addDoc(collection(db,'shops'),{name:n,img:$('#simg').value.trim(),open:true,menu:[],createdAt:serverTimestamp()})};
+ window.tgl=(id,o)=>updateDoc(doc(db,'shops',id),{open:o});
+ window.delShop=id=>confirm('Xóa quán này?')&&deleteDoc(doc(db,'shops',id));
+ window.appr=(id,role)=>{const d={approved:true};if(role==='shop'){const v=$('#sel'+id).value;if(!v)return alert('Chọn quán cho tài khoản này');d.shopId=v}updateDoc(doc(db,'users',id),d)};
+ window.blk=id=>updateDoc(doc(db,'users',id),{approved:false});
+ const L=(n,fn)=>onSnapshot(collection(db,n),s=>{fn(s.docs.map(d=>({id:d.id,...d.data()})));r()});
+ L('orders',a=>O=a.sort(byTime));L('shops',a=>S=a);L('users',a=>U=a);
+});
+</script></body></html>

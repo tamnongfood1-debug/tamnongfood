@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tam Nông - Bán hàng</title><link rel="stylesheet" href="staff.css"></head><body>
+<div id="lg"></div>
+<div id="ap" hidden>
+<header><b id="sn">Quán</b><label><input type="checkbox" id="op"> Mở cửa</label><button onclick="logout()">Thoát</button></header>
+<div class="tabs"><button class="on" data-t="o">Đơn hàng</button><button data-t="m">Thực đơn</button></div>
+<main id="o"></main>
+<main id="m" hidden>
+ <div class="f"><b id="ft">Thêm món</b><input id="mn" placeholder="Tên món"><input id="md" placeholder="Mô tả ngắn"><input id="mp" inputmode="numeric" placeholder="Giá bán (vd 25000)"><input id="mo" inputmode="numeric" placeholder="Giá gốc (nếu đang giảm, có thể bỏ trống)"><input id="mi" placeholder="Link ảnh món (có thể bỏ trống)"><button class="b" id="ms1">Lưu món</button></div>
+ <div id="ml"></div>
+</main>
+</div>
+<script type="module">
+import {gate,$,money,ST,tm,byTime} from './staff.js';
+import {db} from './firebase-config.js';
+import {collection,query,where,onSnapshot,doc,updateDoc,getDoc} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+gate('shop','Tam Nông · Bán hàng',async(u,p)=>{
+ if(!p.shopId){$('#ap').innerHTML='<p class="e">Admin chưa gán quán cho tài khoản này. Vui lòng liên hệ admin.</p>';return}
+ const sr=doc(db,'shops',p.shopId);let shop=(await getDoc(sr)).data(),orders=[],edit=-1,nNew=-1;
+ $('#sn').textContent=shop.name;$('#op').checked=shop.open!==false;$('#op').onchange=()=>updateDoc(sr,{open:$('#op').checked});
+ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));$('#o').hidden=b.dataset.t!=='o';$('#m').hidden=b.dataset.t!=='m'});
+ const beep=()=>{try{const c=new AudioContext(),o=c.createOscillator();o.connect(c.destination);o.frequency.value=880;o.start();setTimeout(()=>{o.stop();c.close()},500)}catch(e){}};
+ window.act=(id,st)=>updateDoc(doc(db,'orders',id),{status:st});
+ function ro(){const L=orders.filter(o=>!['done','cancelled'].includes(o.status));
+  $('#o').innerHTML=L.length?L.map(o=>'<div class="c"><div class="row"><h4>'+o.name+' · <a href="tel:'+o.phone+'">'+o.phone+'</a></h4><span class="tg '+o.status+'">'+ST[o.status]+'</span></div><p>'+tm(o)+' · '+o.addr+'</p><p>'+o.items.map(i=>i.q+' x '+i.n).join(', ')+'</p><p class="pr">'+money(o.total)+'</p>'+
+  (o.status==='new'?'<button class="b s" onclick="act(\''+o.id+'\',\'accepted\')">Nhận đơn</button><button class="b s r" onclick="act(\''+o.id+'\',\'cancelled\')">Từ chối</button>':o.status==='accepted'?'<button class="b s" onclick="act(\''+o.id+'\',\'ready\')">Món xong, gọi tài xế</button>':'')+'</div>').join(''):'<p class="e">Chưa có đơn đang xử lý</p>'}
+ onSnapshot(query(collection(db,'orders'),where('shopId','==',p.shopId)),s=>{orders=s.docs.map(d=>({id:d.id,...d.data()})).sort(byTime);const n=orders.filter(o=>o.status==='new').length;if(nNew>=0&&n>nNew)beep();nNew=n;ro()});
+ const menu=()=>shop.menu||[];
+ function rm(){$('#ml').innerHTML=menu().map((m,i)=>'<div class="c row"><div><h4>'+m.n+'</h4><p>'+(m.d||'')+'</p><span class="pr">'+money(m.p)+'</span></div><div><button class="b s g" onclick="ed('+i+')">Sửa</button><button class="b s r" onclick="dl('+i+')">Xóa</button></div></div>').join('')||'<p class="e">Chưa có món nào</p>'}
+ const save=async()=>{await updateDoc(sr,{menu:shop.menu});rm()};
+ window.ed=i=>{const m=menu()[i];edit=i;$('#ft').textContent='Sửa món';$('#mn').value=m.n;$('#md').value=m.d||'';$('#mp').value=m.p;$('#mo').value=m.o||'';$('#mi').value=m.img||'';scrollTo(0,0)};
+ window.dl=async i=>{if(!confirm('Xóa món này?'))return;shop.menu=menu().filter((_,k)=>k!==i);await save()};
+ $('#ms1').onclick=async()=>{const n=$('#mn').value.trim(),pr=+$('#mp').value;if(!n||!pr)return alert('Nhập tên món và giá');
+  const m={n,d:$('#md').value.trim(),p:pr,o:+$('#mo').value||0,img:$('#mi').value.trim()};const a=[...menu()];edit>=0?a[edit]=m:a.push(m);shop.menu=a;edit=-1;$('#ft').textContent='Thêm món';['mn','md','mp','mo','mi'].forEach(k=>$('#'+k).value='');await save()};
+ rm();
+});
+</script></body></html>
