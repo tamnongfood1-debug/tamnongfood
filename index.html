@@ -320,7 +320,8 @@ function spin(){if(!SH.length)return toast('Chưa có quán nào');const s=SH[Ma
 renderHome();renderAcc();show('home');actTab(0,document.querySelector('#act .tabs button'));
 </script>
 <script type="module">
-import {db,auth,ready} from './firebase-config.js';
+import {db,auth,cfg} from './firebase-config.js';
+const ready=!String(cfg.apiKey).startsWith('DÁN');
 import {viErr} from './staff.js';
 import {collection,addDoc,doc,getDoc,setDoc,query,where,onSnapshot,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -350,7 +351,12 @@ window.authSubmit=async()=>{msg('');const e=$('#am_e').value.trim(),w=$('#am_w')
 
 /* ---------- Hồ sơ + đơn hàng theo tài khoản ---------- */
 async function loadProfile(u){
- try{const d=await getDoc(doc(db,'users',u.uid));S.profile=d.exists()?d.data():null}catch(e){console.warn(e)}
+ try{const ref=doc(db,'users',u.uid),d=await getDoc(ref);
+  if(d.exists())S.profile=d.data();
+  else{ // tài khoản có trong Authentication nhưng chưa có hồ sơ: tạo hồ sơ khách
+   const p={role:'customer',name:(u.email||'').split('@')[0],phone:'',email:u.email||'',approved:true,createdAt:serverTimestamp()};
+   await setDoc(ref,p);S.profile=p}
+ }catch(e){console.warn(e);toast('Không đọc được hồ sơ: '+viErr(e.code))}
  if(S.profile){S.name=S.name||S.profile.name||'';S.phone=S.phone||S.profile.phone||''}
  renderAcc()}
 function watchOrders(u){

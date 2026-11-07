@@ -1,4 +1,5 @@
 <!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tam Nông - Admin</title><link rel="stylesheet" href="staff.css"></head><body>
+<script>addEventListener('error',e=>{var l=document.getElementById('lg');if(l)l.innerHTML='<p style="padding:20px;color:#c62912">Lỗi tải trang: '+e.message+'<br>Kiểm tra firebase-config.js và đảm bảo đã tải đủ các file (staff.js, drive.js...).</p>'})</script>
 <div id="lg"></div>
 <div id="ap" hidden>
 <header><b>Tam Nông · Admin</b><button onclick="logout()">Đăng xuất</button></header>
@@ -7,21 +8,41 @@
  <div id="sf" class="f" hidden>
   <b id="sft">Thêm quán mới</b>
   <input id="sname" placeholder="Tên quán *">
-  <input id="simg" placeholder="Link ảnh quán (có thể bỏ trống)">
+  <h5>Logo / ảnh quán</h5>
+  <img id="spv" class="pv" alt="" hidden>
+  <input type="file" id="sfile" class="up" accept="image/*">
+  <div id="sst" class="us"></div>
+  <input id="simg" placeholder="hoặc dán link ảnh">
   <input id="saddr" placeholder="Địa chỉ quán">
   <input id="sphone" inputmode="tel" placeholder="Số điện thoại quán">
   <input id="shours" placeholder="Giờ mở cửa (vd 08:00 - 22:00)">
+  <h5>Cấp quán cho nhà bán hàng</h5>
+  <select id="sowner"></select>
+  <p class="hint">Chọn tài khoản nhà bán hàng đã đăng ký (kể cả đang chờ duyệt). Chọn xong tài khoản đó được duyệt và quản lý quán này. Chưa có tài khoản? Tạo ở tab Tài khoản.</p>
   <label><input type="checkbox" id="shot"> Hiện ở mục "Quán hot"</label>
   <button class="b" id="ssave">Tạo quán</button>
   <button class="b g" id="scancel" hidden>Hủy sửa</button>
+ </div>
+ <div id="of" class="f" hidden>
+  <b>Tạo tài khoản nhà bán hàng</b>
+  <input id="oname" placeholder="Họ tên chủ quán *">
+  <input id="ophone" inputmode="tel" placeholder="Số điện thoại *">
+  <input id="oemail" type="email" placeholder="Email đăng nhập *">
+  <input id="opw" type="text" placeholder="Mật khẩu (từ 6 ký tự) *">
+  <select id="oshop"></select>
+  <button class="b" id="osave">Tạo tài khoản và cấp quán</button>
+  <p id="oms" class="hint"></p>
  </div>
  <div id="v"></div>
 </main>
 </div>
 <script type="module">
-import {gate,$,money,ST,tm,byTime,esc} from './staff.js';
-import {db} from './firebase-config.js';
-import {collection,onSnapshot,doc,updateDoc,addDoc,deleteDoc,serverTimestamp,writeBatch} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {gate,$,money,ST,tm,byTime,esc,viErr} from './staff.js';
+import {db,cfg} from './firebase-config.js';
+import {bindPicker} from './drive.js';
+import {collection,onSnapshot,doc,updateDoc,addDoc,deleteDoc,setDoc,serverTimestamp,writeBatch,deleteField,getFirestore} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {initializeApp,deleteApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {getAuth,createUserWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 const DEMO=[
  ['BOOM Orange & Tea - Tam Nông',1,[['Trà Tắc Hạt Chia','Trà tắc hạt chia thanh mát.',17000,18000],['Trà Tắc Xí Muội','Chua ngọt thanh mát.',22000,23000],['Hồng Trà Sủi Bọt','Hồng trà sủi bọt thơm đậm.',25000,0]]],
  ['Bún Đậu Hà Nội - Tam Nông',1,[['Bún Đậu Thập Cẩm','Đậu rán, chả cốm, nem chua, thịt luộc.',65000,0],['Bún Đậu Truyền Thống','Đậu rán, thịt luộc, mắm tôm.',55000,0]]],
@@ -30,33 +51,59 @@ const DEMO=[
  ['Bánh Mì Cô Dung',0,[['Bánh Mì Thập Cẩm','Giò, chả, pate, rau thơm.',20000,0],['Bánh Mì Trứng','Trứng ốp la, tương ớt.',15000,0]]]
 ];
 gate('admin','Tam Nông · Admin',()=>{
- let tab=0,O=[],S=[],U=[],editId=null;
+ let tab=0,O=[],S=[],U=[],editId=null,prevOwner='';
+ const pick=bindPicker($('#sfile'),$('#simg'),$('#spv'),$('#sst'),'shop');
  const day=o=>o.createdAt&&new Date(o.createdAt.seconds*1000).toDateString()===new Date().toDateString();
- const fields=['sname','simg','saddr','sphone','shours'];
- function resetForm(){editId=null;fields.forEach(k=>$('#'+k).value='');$('#shot').checked=false;$('#sft').textContent='Thêm quán mới';$('#ssave').textContent='Tạo quán';$('#scancel').hidden=true}
- function r(){let h='';$('#sf').hidden=tab!==2;
+ const fields=['sname','saddr','sphone','shours'];
+ const owners=()=>U.filter(u=>u.role==='shop');
+ const ownerOf=sid=>owners().find(u=>u.shopId===sid);
+ function fillSelects(){
+  const a=$('#sowner'),av=a.value,b=$('#oshop'),bv=b.value;
+  a.innerHTML='<option value="">— Chưa cấp cho ai —</option>'+owners().map(u=>'<option value="'+u.id+'">'+esc(u.name)+' ('+esc(u.email)+')'+(u.approved?'':' · chờ duyệt')+'</option>').join('');
+  b.innerHTML='<option value="">— Chọn quán (có thể cấp sau) —</option>'+S.map(s=>'<option value="'+s.id+'">'+esc(s.name)+'</option>').join('');
+  if([...a.options].some(o=>o.value===av))a.value=av;if([...b.options].some(o=>o.value===bv))b.value=bv}
+ function resetForm(){editId=null;prevOwner='';fields.forEach(k=>$('#'+k).value='');pick.clear();$('#shot').checked=false;$('#sowner').value='';$('#sft').textContent='Thêm quán mới';$('#ssave').textContent='Tạo quán';$('#scancel').hidden=true}
+ function r(){let h='';$('#sf').hidden=tab!==2;$('#of').hidden=tab!==3;fillSelects();
   if(tab===0){const t=O.filter(day),d=t.filter(o=>o.status==='done'),tp={};d.forEach(o=>tp[o.shopName]=(tp[o.shopName]||0)+o.total);
    h='<div class="st"><div class="c"><b>'+t.length+'</b>Đơn hôm nay</div><div class="c"><b>'+t.filter(o=>!['done','cancelled'].includes(o.status)).length+'</b>Đang xử lý</div><div class="c"><b>'+d.length+'</b>Đã giao</div><div class="c"><b>'+money(d.reduce((a,o)=>a+o.total,0))+'</b>Doanh thu</div></div><div class="c"><h4>Doanh thu theo quán (hôm nay)</h4>'+(Object.entries(tp).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<p>'+esc(k)+': <b>'+money(v)+'</b></p>').join('')||'<p>Chưa có</p>')+'</div>'}
   if(tab===1)h=O.slice(0,80).map(o=>'<div class="c"><div class="row"><h4>'+esc(o.shopName)+'</h4><span class="tg '+o.status+'">'+ST[o.status]+'</span></div><p>'+tm(o)+' · '+esc(o.name)+' · '+esc(o.phone)+'</p><p>'+esc(o.addr)+'</p><p>'+o.items.map(i=>esc(i.q+' x '+i.n)).join(', ')+'</p><p class="pr">'+money(o.total)+(o.shipperName?' · Tài xế: '+esc(o.shipperName):'')+'</p>'+(['done','cancelled'].includes(o.status)?'':'<button class="b s r" onclick="st(\''+o.id+'\',\'cancelled\')">Hủy đơn</button>')+'</div>').join('')||'<p class="e">Chưa có đơn</p>';
-  if(tab===2)h=(S.length?'':'<div class="c"><p>Chưa có quán nào. Bạn có thể thêm quán ở form trên, hoặc nạp nhanh 5 quán mẫu để thử.</p><button class="b s g" onclick="seed()">Nạp quán mẫu</button></div>')+
-   S.map(s=>'<div class="c row"><div class="left">'+(s.img?'<img class="im" src="'+esc(s.img)+'" alt="">':'')+'<div><h4>'+esc(s.name)+(s.hot?' 🔥':'')+'</h4><p>'+(s.menu||[]).length+' món · '+(s.open===false?'Đang đóng':'Đang mở')+'</p>'+(s.addr?'<p style="font-size:13px">'+esc(s.addr)+'</p>':'')+'<p style="font-size:12px;color:#999">ID: '+s.id+'</p></div></div><div class="acts"><button class="b s" onclick="editShop(\''+s.id+'\')">Sửa</button><button class="b s g" onclick="tgl(\''+s.id+'\','+(s.open===false)+')">'+(s.open===false?'Mở':'Đóng')+'</button><button class="b s r" onclick="delShop(\''+s.id+'\')">Xóa</button></div></div>').join('');
-  if(tab===3)h=U.filter(u=>u.role==='shop'||u.role==='shipper').map(u=>'<div class="c"><div class="row"><h4>'+esc(u.name)+'</h4><span class="tg '+(u.approved?'done':'new')+'">'+(u.role==='shop'?'Bán hàng':'Tài xế')+' · '+(u.approved?'Đã duyệt':'Chờ duyệt')+'</span></div><p>'+esc(u.email)+' · '+esc(u.phone)+'</p>'+(u.role==='shop'?'<select id="sel'+u.id+'" style="width:100%;padding:10px;margin:6px 0"><option value="">-- Chọn quán --</option>'+S.map(s=>'<option value="'+s.id+'"'+(u.shopId===s.id?' selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select>':'')+'<button class="b s" onclick="appr(\''+u.id+'\',\''+u.role+'\')">'+(u.approved?'Cập nhật':'Duyệt')+'</button>'+(u.approved?'<button class="b s r" style="margin-left:6px" onclick="blk(\''+u.id+'\')">Khóa</button>':'')+'</div>').join('')||'<p class="e">Chưa có tài khoản đối tác đăng ký</p>';
+  if(tab===2)h=(S.length?'':'<div class="c"><p>Chưa có quán nào. Thêm quán ở form trên, hoặc nạp nhanh 5 quán mẫu để thử.</p><button class="b s g" onclick="seed()">Nạp quán mẫu</button></div>')+
+   S.map(s=>{const ow=ownerOf(s.id);return '<div class="c row"><div class="left">'+(s.img?'<img class="im" src="'+esc(s.img)+'" alt="">':'')+'<div><h4>'+esc(s.name)+(s.hot?' 🔥':'')+'</h4><p>'+(s.menu||[]).length+' món · '+(s.open===false?'Đang đóng':'Đang mở')+'</p><p style="font-size:13px">Chủ quán: '+(ow?'<b>'+esc(ow.name)+'</b>'+(ow.approved?'':' (chờ duyệt)'):'<span style="color:#c62912">chưa cấp</span>')+'</p>'+(s.addr?'<p style="font-size:13px">'+esc(s.addr)+'</p>':'')+'</div></div><div class="acts"><button class="b s" onclick="editShop(\''+s.id+'\')">Sửa</button><a class="b s g" style="text-decoration:none;display:inline-block;text-align:center;color:#444" href="shop.html?shop='+s.id+'">Thực đơn</a><button class="b s g" onclick="tgl(\''+s.id+'\','+(s.open===false)+')">'+(s.open===false?'Mở':'Đóng')+'</button><button class="b s r" onclick="delShop(\''+s.id+'\')">Xóa</button></div></div>'}).join('');
+  if(tab===3)h=owners().concat(U.filter(u=>u.role==='shipper')).map(u=>'<div class="c"><div class="row"><h4>'+esc(u.name)+'</h4><span class="tg '+(u.approved?'done':'new')+'">'+(u.role==='shop'?'Bán hàng':'Tài xế')+' · '+(u.approved?'Đã duyệt':'Chờ duyệt')+'</span></div><p>'+esc(u.email)+' · '+esc(u.phone)+'</p>'+(u.role==='shop'?'<select id="sel'+u.id+'" style="width:100%;padding:10px;margin:6px 0"><option value="">-- Chọn quán --</option>'+S.map(s=>'<option value="'+s.id+'"'+(u.shopId===s.id?' selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select>':'')+'<button class="b s" onclick="appr(\''+u.id+'\',\''+u.role+'\')">'+(u.approved?'Cập nhật':'Duyệt')+'</button>'+(u.approved?'<button class="b s r" style="margin-left:6px" onclick="blk(\''+u.id+'\')">Khóa</button>':'')+'</div>').join('')||'<p class="e">Chưa có tài khoản đối tác</p>';
   $('#v').innerHTML=h}
  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=+b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));r()});
  const fail=e=>alert(e.code==='permission-denied'?'Không có quyền. Kiểm tra Firestore Rules và role admin.':'Lỗi: '+(e.message||e));
  window.st=(id,s)=>confirm('Hủy đơn này?')&&updateDoc(doc(db,'orders',id),{status:s}).catch(fail);
- $('#ssave').onclick=async()=>{const name=$('#sname').value.trim();if(!name)return alert('Nhập tên quán');
+ $('#ssave').onclick=async()=>{const name=$('#sname').value.trim();if(!name)return alert('Nhập tên quán');if(pick.busy())return alert('Ảnh đang tải lên, đợi một chút rồi lưu.');
   const d={name,img:$('#simg').value.trim(),addr:$('#saddr').value.trim(),phone:$('#sphone').value.trim(),hours:$('#shours').value.trim(),hot:$('#shot').checked};
-  try{if(editId)await updateDoc(doc(db,'shops',editId),d);else await addDoc(collection(db,'shops'),{...d,open:true,menu:[],createdAt:serverTimestamp()});resetForm()}catch(e){fail(e)}};
+  const ow=$('#sowner').value;$('#ssave').disabled=true;
+  try{let sid=editId;if(editId)await updateDoc(doc(db,'shops',editId),d);else sid=(await addDoc(collection(db,'shops'),{...d,open:true,menu:[],createdAt:serverTimestamp()})).id;
+   if(prevOwner&&prevOwner!==ow)await updateDoc(doc(db,'users',prevOwner),{shopId:deleteField()});
+   if(ow)await updateDoc(doc(db,'users',ow),{shopId:sid,approved:true});
+   resetForm()}catch(e){fail(e)}$('#ssave').disabled=false};
  $('#scancel').onclick=resetForm;
  window.editShop=id=>{const s=S.find(x=>x.id===id);if(!s)return;editId=id;
-  $('#sname').value=s.name||'';$('#simg').value=s.img||'';$('#saddr').value=s.addr||'';$('#sphone').value=s.phone||'';$('#shours').value=s.hours||'';$('#shot').checked=!!s.hot;
+  $('#sname').value=s.name||'';$('#simg').value=s.img||'';pick.refresh();$('#saddr').value=s.addr||'';$('#sphone').value=s.phone||'';$('#shours').value=s.hours||'';$('#shot').checked=!!s.hot;
+  const ow=ownerOf(id);prevOwner=ow?ow.id:'';$('#sowner').value=prevOwner;
   $('#sft').textContent='Sửa quán: '+s.name;$('#ssave').textContent='Lưu thay đổi';$('#scancel').hidden=false;scrollTo(0,0)};
  window.tgl=(id,o)=>updateDoc(doc(db,'shops',id),{open:o}).catch(fail);
  window.delShop=id=>confirm('Xóa quán này? Thực đơn của quán cũng mất.')&&deleteDoc(doc(db,'shops',id)).then(()=>{if(editId===id)resetForm()}).catch(fail);
  window.seed=async()=>{try{const b=writeBatch(db);DEMO.forEach(([name,hot,m])=>b.set(doc(collection(db,'shops')),{name,hot:!!hot,img:'',addr:'Tam Nông',phone:'',hours:'08:00 - 22:00',open:true,createdAt:serverTimestamp(),menu:m.map(([n,d,p,o])=>({n,d,p,o,img:''}))}));await b.commit()}catch(e){fail(e)}};
  window.appr=(id,role)=>{const d={approved:true};if(role==='shop'){const v=$('#sel'+id).value;if(!v)return alert('Chọn quán cho tài khoản này');d.shopId=v}updateDoc(doc(db,'users',id),d).catch(fail)};
  window.blk=id=>updateDoc(doc(db,'users',id),{approved:false}).catch(fail);
+ // Tạo tài khoản chủ quán: dùng app Firebase phụ để admin không bị đăng xuất
+ $('#osave').onclick=async()=>{const m=t=>$('#oms').textContent=t;m('');
+  const name=$('#oname').value.trim(),phone=$('#ophone').value.trim(),email=$('#oemail').value.trim(),pw=$('#opw').value,sid=$('#oshop').value;
+  if(!name||!phone||!email||pw.length<6)return m('Nhập đủ họ tên, số điện thoại, email và mật khẩu từ 6 ký tự.');
+  $('#osave').disabled=true;const app2=initializeApp(cfg,'owner'+Date.now());
+  try{const a2=getAuth(app2),c=await createUserWithEmailAndPassword(a2,email,pw);
+   await setDoc(doc(getFirestore(app2),'users',c.user.uid),{role:'shop',name,phone,email,approved:false,createdAt:serverTimestamp()});
+   await signOut(a2);
+   await updateDoc(doc(db,'users',c.user.uid),sid?{approved:true,shopId:sid}:{approved:true});
+   ['oname','ophone','oemail','opw'].forEach(k=>$('#'+k).value='');$('#oshop').value='';
+   m('Đã tạo tài khoản '+email+(sid?' và cấp quán.':'. Hãy cấp quán cho tài khoản này bên dưới.'))}
+  catch(e){m(viErr(e.code||e.message))}
+  $('#osave').disabled=false;deleteApp(app2).catch(()=>{})};
  const L=(n,fn)=>onSnapshot(collection(db,n),s=>{fn(s.docs.map(d=>({id:d.id,...d.data()})));r()},e=>console.error(n,e));
  L('orders',a=>O=a.sort(byTime));L('shops',a=>S=a);L('users',a=>U=a);
 });
