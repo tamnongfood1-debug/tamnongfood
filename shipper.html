@@ -12,8 +12,9 @@ import {db} from './firebase-config.js';
 import {collection,query,where,onSnapshot,doc,updateDoc,runTransaction} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 gate('shipper','Tam Nông · Tài xế',(u,p)=>{
  $('#sn').textContent='Xin chào, '+p.name;let tab=0,wait=[],mine=[];
+ const gps=o=>o.lat!=null&&o.lng!=null?'<p><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination='+o.lat+','+o.lng+'">Chỉ đường tới vị trí GPS của khách</a></p>':'';
  const map=a=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a);
- const card=(o,btn)=>'<div class="c"><div class="row"><h4>'+esc(o.shopName)+'</h4><span class="pr">'+money(o.fee+(o.tip||0))+' công</span></div><p>Lấy: '+esc(o.shopName)+'</p><p>Giao: <a target="_blank" href="'+map(o.addr)+'">'+esc(o.addr)+'</a></p><p>'+esc(o.name)+' · <a href="tel:'+esc(o.phone)+'">'+esc(o.phone)+'</a></p><p>'+o.items.map(i=>esc(i.q+' x '+i.n)).join(', ')+'</p><p>Thu khách: <b class="pr">'+money(o.total)+'</b> '+tm(o)+'</p>'+btn+'</div>';
+ const card=(o,btn)=>'<div class="c"><div class="row"><h4>'+esc(o.shopName)+'</h4><span class="pr">'+money(o.fee+(o.tip||0))+' công</span></div><p>Lấy: '+esc(o.shopName)+'</p><p>Giao: <a target="_blank" href="'+map(o.addr)+'">'+esc(o.addr)+'</a></p>'+gps(o)+(o.note?'<p>Ghi chú: '+esc(o.note)+'</p>':'')+'<p>'+esc(o.name)+' · <a href="tel:'+esc(o.phone)+'">'+esc(o.phone)+'</a></p><p>'+o.items.map(i=>esc(i.q+' x '+i.n)).join(', ')+'</p><p>Thu khách: <b class="pr">'+money(o.total)+'</b> '+tm(o)+'</p>'+btn+'</div>';
  function r(){let h='';
   if(tab===0)h=wait.map(o=>card(o,'<button class="b" onclick="take(\''+o.id+'\')">Nhận giao đơn này</button>')).join('')||'<p class="e">Chưa có đơn nào chờ tài xế</p>';
   if(tab===1)h=mine.filter(o=>o.status==='delivering').map(o=>card(o,'<button class="b" onclick="fin(\''+o.id+'\')">Đã giao xong</button>')).join('')||'<p class="e">Bạn chưa nhận đơn nào</p>';
