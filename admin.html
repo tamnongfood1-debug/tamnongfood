@@ -17,8 +17,8 @@
   <input id="sphone" inputmode="tel" placeholder="Số điện thoại quán">
   <input id="shours" placeholder="Giờ mở cửa (vd 08:00 - 22:00)">
   <h5>Cấp quán cho nhà bán hàng</h5>
-  <select id="sowner"></select>
-  <p class="hint">Chọn tài khoản nhà bán hàng đã đăng ký (kể cả đang chờ duyệt). Chọn xong tài khoản đó được duyệt và quản lý quán này. Chưa có tài khoản? Tạo ở tab Tài khoản.</p>
+  <input id="sowner" inputmode="tel" placeholder="Nhập số điện thoại tài khoản cần cấp quán">
+  <p id="sowhint" class="hint"></p>
   <label><input type="checkbox" id="shot"> Hiện ở mục "Quán hot"</label>
   <button class="b" id="ssave">Tạo quán</button>
   <button class="b g" id="scancel" hidden>Hủy sửa</button>
@@ -57,13 +57,22 @@ gate('admin','Tam Nông · Admin',()=>{
  const fields=['sname','saddr','sphone','shours'];
  const owners=()=>U.filter(u=>u.role==='shop');
  const ownerOf=sid=>owners().find(u=>u.shopId===sid);
+ const normP=p=>{p=String(p||'').replace(/\D/g,'');if(p.startsWith('84'))p='0'+p.slice(2);return p};
+ const findByPhone=v=>{const n=normP(v);return n?U.filter(u=>normP(u.phone)===n):[]};
+ const DEF='Nhập SĐT tài khoản đã đăng ký (ở trang khách hoặc trang bán hàng). Tài khoản đó sẽ thành chủ quán. Để trống nếu chưa cấp.';
+ function ownHint(){const v=$('#sowner').value.trim(),h=$('#sowhint');
+  if(!v){h.textContent=DEF;h.style.color='';return}
+  const m=findByPhone(v);
+  if(!m.length){h.textContent='Chưa thấy tài khoản nào có SĐT này. Người đó cần đăng ký ở trang khách (index.html) trước.';h.style.color='#c62912';return}
+  const u=m[0],bad=u.role==='admin'||u.role==='shipper';h.style.color=bad?'#c62912':'#1a7a35';
+  h.textContent=u.role==='admin'?'Đây là tài khoản admin, không thể cấp làm chủ quán.':u.role==='shipper'?'Đây là tài khoản tài xế, không thể cấp làm chủ quán.':'✓ '+u.name+' · '+u.email+(u.role==='customer'?' (khách, sẽ được nâng thành chủ quán)':' (nhà bán hàng)')+(m.length>1?' — có '+m.length+' tài khoản trùng SĐT, dùng tài khoản đầu tiên':'')}
+ $('#sowner').addEventListener('input',ownHint);
  function fillSelects(){
-  const a=$('#sowner'),av=a.value,b=$('#oshop'),bv=b.value;
-  a.innerHTML='<option value="">— Chưa cấp cho ai —</option>'+owners().map(u=>'<option value="'+u.id+'">'+esc(u.name)+' ('+esc(u.email)+')'+(u.approved?'':' · chờ duyệt')+'</option>').join('');
+  const b=$('#oshop'),bv=b.value;
   b.innerHTML='<option value="">— Chọn quán (có thể cấp sau) —</option>'+S.map(s=>'<option value="'+s.id+'">'+esc(s.name)+'</option>').join('');
-  if([...a.options].some(o=>o.value===av))a.value=av;if([...b.options].some(o=>o.value===bv))b.value=bv}
- function resetForm(){editId=null;prevOwner='';fields.forEach(k=>$('#'+k).value='');pick.clear();$('#shot').checked=false;$('#sowner').value='';$('#sft').textContent='Thêm quán mới';$('#ssave').textContent='Tạo quán';$('#scancel').hidden=true}
- function r(){let h='';$('#sf').hidden=tab!==2;$('#of').hidden=tab!==3;fillSelects();
+  if([...b.options].some(o=>o.value===bv))b.value=bv}
+ function resetForm(){editId=null;prevOwner='';fields.forEach(k=>$('#'+k).value='');pick.clear();$('#shot').checked=false;$('#sowner').value='';ownHint();$('#sft').textContent='Thêm quán mới';$('#ssave').textContent='Tạo quán';$('#scancel').hidden=true}
+ function r(){let h='';$('#sf').hidden=tab!==2;$('#of').hidden=tab!==3;fillSelects();ownHint();
   if(tab===0){const t=O.filter(day),d=t.filter(o=>o.status==='done'),tp={};d.forEach(o=>tp[o.shopName]=(tp[o.shopName]||0)+o.total);
    h='<div class="st"><div class="c"><b>'+t.length+'</b>Đơn hôm nay</div><div class="c"><b>'+t.filter(o=>!['done','cancelled'].includes(o.status)).length+'</b>Đang xử lý</div><div class="c"><b>'+d.length+'</b>Đã giao</div><div class="c"><b>'+money(d.reduce((a,o)=>a+o.total,0))+'</b>Doanh thu</div></div><div class="c"><h4>Doanh thu theo quán (hôm nay)</h4>'+(Object.entries(tp).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<p>'+esc(k)+': <b>'+money(v)+'</b></p>').join('')||'<p>Chưa có</p>')+'</div>'}
   if(tab===1)h=O.slice(0,80).map(o=>'<div class="c"><div class="row"><h4>'+esc(o.shopName)+'</h4><span class="tg '+o.status+'">'+ST[o.status]+'</span></div><p>'+tm(o)+' · '+esc(o.name)+' · '+esc(o.phone)+'</p><p>'+esc(o.addr)+'</p><p>'+o.items.map(i=>esc(i.q+' x '+i.n)).join(', ')+'</p><p class="pr">'+money(o.total)+(o.shipperName?' · Tài xế: '+esc(o.shipperName):'')+'</p>'+(['done','cancelled'].includes(o.status)?'':'<button class="b s r" onclick="st(\''+o.id+'\',\'cancelled\')">Hủy đơn</button>')+'</div>').join('')||'<p class="e">Chưa có đơn</p>';
@@ -76,15 +85,20 @@ gate('admin','Tam Nông · Admin',()=>{
  window.st=(id,s)=>confirm('Hủy đơn này?')&&updateDoc(doc(db,'orders',id),{status:s}).catch(fail);
  $('#ssave').onclick=async()=>{const name=$('#sname').value.trim();if(!name)return alert('Nhập tên quán');if(pick.busy())return alert('Ảnh đang tải lên, đợi một chút rồi lưu.');
   const d={name,img:$('#simg').value.trim(),addr:$('#saddr').value.trim(),phone:$('#sphone').value.trim(),hours:$('#shours').value.trim(),hot:$('#shot').checked};
-  const ow=$('#sowner').value;$('#ssave').disabled=true;
+  const pv=$('#sowner').value.trim();let ow='';
+  if(pv){const m=findByPhone(pv);
+   if(!m.length)return alert('Không tìm thấy tài khoản nào có số điện thoại này. Người đó cần đăng ký ở trang khách trước.');
+   if(!['customer','shop'].includes(m[0].role))return alert('Chỉ cấp được cho tài khoản khách hoặc nhà bán hàng.');
+   ow=m[0].id}
+  $('#ssave').disabled=true;
   try{let sid=editId;if(editId)await updateDoc(doc(db,'shops',editId),d);else sid=(await addDoc(collection(db,'shops'),{...d,open:true,menu:[],createdAt:serverTimestamp()})).id;
    if(prevOwner&&prevOwner!==ow)await updateDoc(doc(db,'users',prevOwner),{shopId:deleteField()});
-   if(ow)await updateDoc(doc(db,'users',ow),{shopId:sid,approved:true});
+   if(ow)await updateDoc(doc(db,'users',ow),{role:'shop',shopId:sid,approved:true});
    resetForm()}catch(e){fail(e)}$('#ssave').disabled=false};
  $('#scancel').onclick=resetForm;
  window.editShop=id=>{const s=S.find(x=>x.id===id);if(!s)return;editId=id;
   $('#sname').value=s.name||'';$('#simg').value=s.img||'';pick.refresh();$('#saddr').value=s.addr||'';$('#sphone').value=s.phone||'';$('#shours').value=s.hours||'';$('#shot').checked=!!s.hot;
-  const ow=ownerOf(id);prevOwner=ow?ow.id:'';$('#sowner').value=prevOwner;
+  const ow=ownerOf(id);prevOwner=ow?ow.id:'';$('#sowner').value=ow?ow.phone||'':'';ownHint();
   $('#sft').textContent='Sửa quán: '+s.name;$('#ssave').textContent='Lưu thay đổi';$('#scancel').hidden=false;scrollTo(0,0)};
  window.tgl=(id,o)=>updateDoc(doc(db,'shops',id),{open:o}).catch(fail);
  window.delShop=id=>confirm('Xóa quán này? Thực đơn của quán cũng mất.')&&deleteDoc(doc(db,'shops',id)).then(()=>{if(editId===id)resetForm()}).catch(fail);
