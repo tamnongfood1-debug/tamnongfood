@@ -2,7 +2,7 @@
 import {auth} from './firebase-config.js';
 
 // Dán URL Web app của Apps Script vào đây (dạng https://script.google.com/macros/s/.../exec)
-export const UPLOAD_URL='';
+export const UPLOAD_URL='https://script.google.com/macros/s/AKfycbyjKB2KiOer2jNZ26aLIgWAnSVxVl8ltCOQRwzQbaFjsBnVaGi_FVtBzeOsLSk30BnY/exec';
 
 // Thu nhỏ ảnh trước khi tải để nhanh và nhẹ (tối đa 900px, JPEG)
 function compress(file,max=900,q=.82){
