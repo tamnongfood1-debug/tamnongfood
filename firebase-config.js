@@ -1,13 +1,11 @@
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getFirestore} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getAuth} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-// Dán thông tin Firebase của bạn vào đây (Firebase Console > Project settings > Your apps > Web app)
-// Xem hướng dẫn từng bước trong README.md
 export const cfg={
-  apiKey:"DÁN_API_KEY",
-  authDomain:"TEN-PROJECT.firebaseapp.com",
-  projectId:"TEN-PROJECT",
-  appId:"DÁN_APP_ID"
+  apiKey:"AIzaSyAECDJ5Nxsom9JAnXSEQ-6SyhL9d4j1IDo",
+  authDomain:"tamnongfood-2e8a8.firebaseapp.com",
+  projectId:"tamnongfood-2e8a8",
+  appId:"1:119971165608:web:ebb1c58a553552f6a9199d"
 };
 export const ready=!cfg.apiKey.startsWith('DÁN');
 export const app=initializeApp(cfg),db=getFirestore(app),auth=getAuth(app);
