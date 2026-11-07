@@ -129,9 +129,19 @@ nav button.on{color:var(--y)}
 .ord b{font-size:18px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;font-size:15px;opacity:0;transition:.3s;z-index:99;pointer-events:none}
 #toast.on{opacity:1}
-.im{background:#f0f0f0;overflow:hidden;color:#c4c4c4;display:flex;align-items:center;justify-content:center}.im img{width:100%;height:100%;object-fit:cover;display:block}.im svg,.sh svg{width:42%;height:42%}.sh{background:#e4e4e4;color:#bbb}.sh img{width:100%;height:100%;object-fit:cover}.sh svg{width:70px;height:70px}.ban{padding:0;background:none}.ban img{display:block;width:100%;border-radius:14px}.ban.nb{padding:18px;background:linear-gradient(120deg,#fff3c4,#ffd04f 60%,#f0a500)}.ban:not(.nb) .tx{display:none}.cat div{background:none}.cat img{width:64px;height:64px;object-fit:contain}
-.cats{justify-content:space-around;overflow:visible;gap:6px}.cat{min-width:0;font-size:13px}.cat img{width:72px;height:72px}
-.cat>div{font-size:0;background:none}
+.im{background:#f0f0f0;overflow:hidden;color:#c4c4c4;display:flex;align-items:center;justify-content:center}.im img{width:100%;height:100%;object-fit:cover;display:block}.im svg,.sh svg{width:42%;height:42%}.sh{background:#e4e4e4;color:#bbb}.sh img{width:100%;height:100%;object-fit:cover}.sh svg{width:70px;height:70px}.ban{padding:0;background:none}.ban img{display:block;width:100%;border-radius:14px}.ban.nb{padding:18px;background:linear-gradient(120deg,#fff3c4,#ffd04f 60%,#f0a500)}.ban:not(.nb) .tx{display:none}.cat div{background:none}.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:14px 8px 4px;overflow:visible}
+.cat{min-width:0;font-size:12.5px;font-weight:600;line-height:1.25;color:#333}
+.cat>div{font-size:0;background:#fff8e1;padding:0;margin:0 auto 6px;width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center}
+.cat img{width:40px;height:40px;object-fit:contain}
+.md{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:20;display:flex;align-items:flex-end}.md[hidden]{display:none}
+.mc{background:#fff;width:100%;border-radius:22px 22px 0 0;padding:22px 18px 26px;position:relative}
+.mc h3{font-size:22px;margin-bottom:14px;color:var(--b)}.mc input{width:100%;padding:14px;border:1px solid #ddd;border-radius:12px;margin-bottom:10px;font-size:16px;font-family:inherit;outline:0}
+.mc input:focus{border-color:var(--y)}.mc .x{position:absolute;right:14px;top:14px;border:0;background:var(--g);width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer}
+.mc .sw{background:none;border:0;color:var(--b);font-weight:700;font-size:15px;width:100%;padding:12px;cursor:pointer}.mc .fg{display:block;text-align:center;color:#888;font-size:14px;cursor:pointer;margin-top:2px}
+#am_m{color:#c62912;font-size:14px;min-height:20px;margin-bottom:6px}#am_m.ok{color:#1a7a35}
+.lo.in{background:var(--y);color:var(--b);font-weight:700}
+.so{background:#eee;color:#888;font-size:13px;font-weight:700;padding:6px 10px;border-radius:8px;position:absolute;right:16px;bottom:20px}
+.dish.off .im{opacity:.45}
 </style>
 </head>
 <body>
@@ -147,7 +157,7 @@ nav button.on{color:var(--y)}
   <div class="ban"><img src="img/banner.jpg" alt="" onerror="this.parentNode.classList.add('nb');this.remove()"><div class="tx"><h3>TAM NÔNG GIẢM ĐẾN</h3><h2>50% PHÍ SHIP</h2><small>Trải nghiệm dịch vụ tiện lợi ngay hôm nay!</small></div></div>
   <div class="sec"><span>🤔</span><div><h4>Hôm nay ăn gì?</h4><p>Gợi ý cho bạn những món ngon</p></div></div>
   <div class="hs" id="h1"></div>
-  <div class="sec"><span>🔥</span><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div></div>
+  <div class="sec" id="hsec"><span>🔥</span><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div></div>
   <div id="h2"></div>
   <div class="sec"><span>🏠</span><div><h4>Quán ngon nhất định phải thử</h4><p>Khám phá các quán xung quanh vị trí của bạn</p></div></div>
   <div class="hs" id="h3"></div>
@@ -168,16 +178,16 @@ nav button.on{color:var(--y)}
   <div id="inbb" class="empty"><i>💬</i>Chưa có tin nhắn nào</div>
 </div>
 <div class="scr" id="acc" style="background:var(--g)">
-  <div class="ac"><div class="av">👤</div><div><b>tamnong_h9AfYL</b><span>09xx.xxx.xxx</span></div></div>
+  <div class="ac" id="acHead"></div>
   <div class="gl">Tài khoản</div>
-  <div class="box"><div class="row2">👤 Thông tin tài khoản<span class="mu" style="margin-left:auto">›</span></div><div class="row2" onclick="setAddr()">📍 Địa chỉ giao hàng<span class="mu" style="margin-left:auto">›</span></div></div>
+  <div class="box"><div class="row2" onclick="S.user?toast('Thông tin đã lưu trong hồ sơ'):openAuth()">👤 Thông tin tài khoản<span class="mu" style="margin-left:auto">›</span></div><div class="row2" onclick="setAddr()">📍 Địa chỉ giao hàng<span class="mu" style="margin-left:auto">›</span></div></div>
   <div class="gl">Đối tác</div>
-  <div class="box"><div class="row2">🚗 Đăng ký tài xế<span class="nw">MỚI</span>›</div><div class="row2">🤝 Đăng ký quán<span class="nw">MỚI</span>›</div></div>
+  <div class="box"><div class="row2" onclick="location.href='shipper.html'">🚗 Đăng ký tài xế<span class="nw">MỚI</span>›</div><div class="row2" onclick="location.href='shop.html'">🤝 Đăng ký quán<span class="nw">MỚI</span>›</div></div>
   <div class="gl">Pháp lý &amp; chính sách</div>
   <div class="box"><div class="row2">🛡️ Chính sách bảo mật<span class="mu" style="margin-left:auto">›</span></div><div class="row2">⚖️ Cơ chế giải quyết tranh chấp<span class="mu" style="margin-left:auto">›</span></div></div>
   <div class="gl">Hỗ trợ</div>
   <div class="hp"><div>💙 Zalo</div><div>📘 Facebook</div></div>
-  <button class="lo" onclick="toast('Đã đăng xuất')">⎋ Đăng xuất</button>
+  <button class="lo" id="loBtn" onclick="authBtn()">⎋ Đăng xuất</button>
   <p style="text-align:center;color:#aaa;font-size:13px">Phiên bản 1.0.0 · Tam Nông</p>
 </div>
 
@@ -188,11 +198,23 @@ nav button.on{color:var(--y)}
   <button onclick="go('inb',2)"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Hộp thư</button>
   <button onclick="go('acc',3)"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Tài khoản</button>
 </nav>
+<div id="am" class="md" hidden><div class="mc">
+  <button class="x" onclick="closeAuth()">✕</button>
+  <h3 id="am_t">Đăng nhập</h3>
+  <div id="am_r" hidden><input id="am_n" placeholder="Họ tên" autocomplete="name"><input id="am_p" placeholder="Số điện thoại" inputmode="tel" autocomplete="tel"></div>
+  <input id="am_e" type="email" placeholder="Email" autocomplete="email"><input id="am_w" type="password" placeholder="Mật khẩu (từ 6 ký tự)" autocomplete="current-password">
+  <p id="am_m"></p>
+  <button class="btn" id="am_b" onclick="authSubmit()">Đăng nhập</button>
+  <button class="sw" id="am_s" onclick="authMode()">Chưa có tài khoản? Đăng ký</button>
+  <span class="fg" onclick="authForgot()">Quên mật khẩu?</span>
+</div></div>
 </div>
 <div id="toast"></div>
 
 <script>
 const $=s=>document.querySelector(s), f=n=>n.toLocaleString('vi-VN')+'đ';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let REAL=false;
 const SH=[
  {id:0,n:'BOOM Orange & Tea - Tam Nông',e:'🍹',c:'linear-gradient(135deg,#ffb199,#ff0844)',hot:1,m:[
   ['Trà Tắc Hạt Chia','Trà tắc hạt chia thanh mát, chua ngọt dịu, giải khát sảng khoái.',17000,18000,'🍋'],
@@ -213,37 +235,41 @@ const SH=[
   ['Bún Bò Giò Heo','Nước dùng đậm vị sả ớt.',45000,0,'🍲'],['Bún Bò Đặc Biệt','Bò, giò, chả cua đầy đủ.',55000,0,'🍲']]}
 ];
 const PHS='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 11h16a1 1 0 0 0 0-2 8 8 0 0 0-16 0 1 1 0 0 0 0 2zM3 13h18v2H3zM5 17h14a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z"/></svg>';
-const IM=src=>`<img src="${src}" alt="" loading="lazy" onerror="this.outerHTML=PHS">`;
-const MI=(s,i)=>/^(https?:|img\/|data:)/.test(s.m[i][4]||'')?s.m[i][4]:MI(s,i);
+const IM=src=>src?`<img src="${esc(src)}" alt="" loading="lazy" onerror="this.outerHTML=PHS">`:PHS;
+const MI=(s,i)=>{const v=s.m[i][4]||'';return /^(https?:|img\/|data:)/.test(v)?v:''};
 const SODA=[['Soda Việt Quất',27000,'🫐'],['Soda Chanh Dây',27000,'🍋'],['Soda Dâu',27000,'🍓'],['Soda Đào',27000,'🍑']];
 let S={addr:'',shop:null,cart:[],tip:0,door:false,orders:[],cur:null,qty:1,tab:0,name:localStorage.tn_n||'',phone:localStorage.tn_p||''};
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800)}
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id));const main=['home','act','inb','acc'].includes(id);$('#nav').style.display=main?'flex':'none';$('#slot').style.display=id==='home'?'flex':'none'}
 function go(id,i){document.querySelectorAll('nav button').forEach((b,k)=>b.classList.toggle('on',k===i));show(id);if(id==='act')actTab(0,document.querySelector('#act .tabs button'))}
 function setAddr(){const a=prompt('Nhập địa chỉ giao hàng (xã/thôn, số nhà...):',S.addr);if(a!==null&&a.trim()){S.addr=a.trim();$('#ad1').textContent=S.addr;toast('Đã lưu địa chỉ');if($('#co').classList.contains('on'))renderCo()}}
+function renderAcc(){const u=S.user,p=S.profile;
+  $('#acHead').innerHTML=u?`<div class="av">👤</div><div><b>${esc((p&&p.name)||u.email)}</b><span>${esc((p&&p.phone)||'')}</span><span style="display:block;font-size:13px">${esc(u.email)}</span></div>`:`<div class="av">👤</div><div><b>Khách</b><span>Đăng nhập để đặt món và theo dõi đơn</span></div>`;
+  $('#loBtn').textContent=u?'⎋ Đăng xuất':'Đăng nhập / Đăng ký';$('#loBtn').classList.toggle('in',!u)}
 function renderHome(){
   const q=$('#q').value.toLowerCase().trim(),L=SH.filter(s=>!q||s.n.toLowerCase().includes(q)||s.m.some(m=>m[0].toLowerCase().includes(q)));
-  const cd=s=>`<div class="card" onclick="openShop(${s.id})"><div class="im">${IM((s.i||'img/q'+s.id+'.jpg'))}</div><h5>${s.n}</h5><p>⭐ 5.0 · 30 phút</p></div>`;
+  const cd=s=>`<div class="card" onclick="openShop(${s.id})"><div class="im">${IM(s.i)}</div><h5>${esc(s.n)}</h5><p>⭐ 5.0 · 30 phút${s.open===false?' · <span style="color:#c62912">Đóng cửa</span>':''}</p></div>`;
   $('#h1').innerHTML=L.slice(0,4).map(cd).join('')||'<p style="padding:14px;color:#888">Không tìm thấy quán nào</p>';
-  $('#h2').innerHTML=L.filter(s=>s.hot).map(s=>`<div class="hot" onclick="openShop(${s.id})"><div class="rb">HOT</div><div class="top"><div class="im">${IM((s.i||'img/q'+s.id+'.jpg'))}</div><div><h5>${s.n}</h5><p style="color:#666;margin-top:6px">⭐ 5.0 🕒 30 phút</p><span class="tag">Món ngon</span><span class="tag">Được yêu thích</span></div></div><div class="mini">${s.m.slice(0,3).map((m,k)=>`<div><div class="im">${IM(MI(s,k))}</div>${m[0]}<b>${f(m[2])}</b></div>`).join('')}</div></div>`).join('');
+  const HT=L.filter(s=>s.hot);$('#hsec').style.display=HT.length?'':'none';$('#h2').innerHTML=HT.map(s=>`<div class="hot" onclick="openShop(${s.id})"><div class="rb">HOT</div><div class="top"><div class="im">${IM(s.i)}</div><div><h5>${esc(s.n)}</h5><p style="color:#666;margin-top:6px">⭐ 5.0 🕒 30 phút</p><span class="tag">Món ngon</span><span class="tag">Được yêu thích</span></div></div><div class="mini">${s.m.slice(0,3).map((m,k)=>`<div><div class="im">${IM(MI(s,k))}</div>${esc(m[0])}<b>${f(m[2])}</b></div>`).join('')}</div></div>`).join('');
   $('#h3').innerHTML=L.slice().reverse().map(cd).join('');
 }
 function openShop(id){
   const s=SH[id];if(S.shop!==id){S.cart=[];S.shop=id}
-  $('#store').innerHTML=`<div class="sh"><button class="bk" onclick="show('home')">←</button>${IM((s.i||'img/q'+s.id+'.jpg'))}</div>
-  <div class="si"><h2>${s.n}</h2><div class="meta"><span>⭐ <b>5.0</b> (0) · 🕒 30 phút chuẩn bị món</span></div>
-  <div class="meta"><span>🕗 Hôm nay: 08:00 - 22:00</span><span class="op">✔ Đang mở cửa</span></div>
+  $('#store').innerHTML=`<div class="sh"><button class="bk" onclick="show('home')">←</button>${IM(s.i)}</div>
+  <div class="si"><h2>${esc(s.n)}</h2><div class="meta"><span>⭐ <b>5.0</b> (0) · 🕒 30 phút chuẩn bị món</span></div>
+  ${s.addr?`<div class="meta"><span>📍 ${esc(s.addr)}</span></div>`:''}${s.phone?`<div class="meta"><span>📞 <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a></span></div>`:''}
+  <div class="meta"><span>🕗 Hôm nay: ${esc(s.hours||'08:00 - 22:00')}</span>${s.open===false?'<span class="op" style="color:#c62912">✖ Đang đóng cửa</span>':'<span class="op">✔ Đang mở cửa</span>'}</div>
   <div class="pr"><span><b>Ưu đãi</b>Giảm 1K cho đơn từ 1K</span><span><b>Ưu đãi</b>Giảm 12K cho đơn đầu</span></div>
   <button class="bt" onclick="toast('Tính năng đặt nhóm sắp ra mắt')">👥 Đặt nhóm</button><button class="bt" onclick="toast('Đã sao chép liên kết')">🔗 Chia sẻ</button></div>
   <div class="gap"></div><div class="big" style="font-size:22px;color:#666">KHÁC</div>
-  ${s.m.map((m,i)=>`<div class="dish"><div class="im">${IM(MI(s,i))}</div><div><h4>${m[0]}</h4><p>${m[1]}</p><div class="pc">${f(m[2])}${m[3]?`<s>${f(m[3])}</s><em>-${Math.round((1-m[2]/m[3])*100)}%</em>`:''}</div></div><button class="plus" onclick="openItem(${i})">+</button></div>`).join('')}
+  ${s.m.map((m,i)=>`<div class="dish${m[5]||s.open===false?' off':''}"><div class="im">${IM(MI(s,i))}</div><div><h4>${esc(m[0])}</h4><p>${esc(m[1])}</p><div class="pc">${f(m[2])}${m[3]?`<s>${f(m[3])}</s><em>-${Math.round((1-m[2]/m[3])*100)}%</em>`:''}</div></div>${s.open===false?'<span class="so">Đóng cửa</span>':m[5]?'<span class="so">Hết món</span>':`<button class="plus" onclick="openItem(${i})">+</button>`}</div>`).join('')||'<div class="empty" style="padding:40px 20px">Quán chưa có món nào</div>'}
   <div class="bar" id="cb" style="display:none"><button class="btn" onclick="renderCo()"></button></div>`;
   show('store');updBar();
 }
 function updBar(){const b=$('#cb');if(!b)return;const n=S.cart.reduce((a,c)=>a+c.q,0);b.style.display=n?'block':'none';b.firstChild.textContent=`XEM GIỎ HÀNG (${n}) - ${f(S.cart.reduce((a,c)=>a+c.p*c.q,0))}`}
 function openItem(i){S.cur=i;S.qty=1;const m=SH[S.shop].m[i];
   $('#item').innerHTML=`<div class="top2"><button class="bk" onclick="show('store')">‹</button>Thêm món</div>
-  <div style="display:flex;gap:14px;padding:14px"><div class="dish" style="padding:0"><div class="im" style="width:110px;height:110px">${IM(MI(SH[S.shop],S.cur))}</div></div><div style="flex:1"><h3 style="font-size:22px">${m[0]}</h3><p style="color:#888;margin:8px 0">${m[1]}</p>
+  <div style="display:flex;gap:14px;padding:14px"><div class="dish" style="padding:0"><div class="im" style="width:110px;height:110px">${IM(MI(SH[S.shop],S.cur))}</div></div><div style="flex:1"><h3 style="font-size:22px">${esc(m[0])}</h3><p style="color:#888;margin:8px 0">${esc(m[1])}</p>
   <div style="display:flex;justify-content:space-between;align-items:center"><div class="pc" style="color:#f0a500">${f(m[2])}${m[3]?`<s style="display:block">${f(m[3])}</s>`:''}</div><div class="qty"><button onclick="q(-1)">−</button><span id="qv">1</span><button class="p" onclick="q(1)">+</button></div></div></div></div>
   <div class="row2" style="border-top:1px solid #eee"><input id="nt" placeholder="📝 Ghi chú cho quán" style="border:0;outline:0;width:100%;font-size:17px"></div>
   <div class="bar"><button class="btn" id="ab" onclick="addCart()"></button></div>`;
@@ -257,13 +283,13 @@ function renderCo(){
   if(!S.cart.length){toast('Giỏ hàng trống');show('store');return}
   const c=calc(),s=SH[S.shop];
   $('#co').innerHTML=`<div class="top2"><button class="bk" onclick="show('store')">←</button>Xác nhận đơn hàng</div>
-  <div class="row2" onclick="setAddr()"><span>📍 ${S.addr||'<span class="mu">Chưa chọn địa chỉ giao hàng</span>'}</span><span class="add">${S.addr?'Sửa':'Thêm'}</span></div>
-  <div class="row2"><input placeholder="Họ tên người nhận" value="${S.name}" oninput="S.name=this.value;chk()" style="border:0;outline:0;width:100%;font-size:17px"></div><div class="row2"><input placeholder="Số điện thoại" inputmode="tel" value="${S.phone}" oninput="S.phone=this.value;chk()" style="border:0;outline:0;width:100%;font-size:17px"></div>
+  <div class="row2" onclick="setAddr()"><span>📍 ${esc(S.addr)||'<span class="mu">Chưa chọn địa chỉ giao hàng</span>'}</span><span class="add">${S.addr?'Sửa':'Thêm'}</span></div>
+  <div class="row2"><input placeholder="Họ tên người nhận" value="${esc(S.name)}" oninput="S.name=this.value;chk()" style="border:0;outline:0;width:100%;font-size:17px"></div><div class="row2"><input placeholder="Số điện thoại" inputmode="tel" value="${esc(S.phone)}" oninput="S.phone=this.value;chk()" style="border:0;outline:0;width:100%;font-size:17px"></div>
   <div class="row2"><label><input type="checkbox" style="width:22px;height:22px;vertical-align:middle;margin-right:10px">Đặt hộ người khác</label></div><div class="gap"></div>
-  <div class="row2" style="font-weight:700;border:0">🏪 ${s.n}</div>
-  ${S.cart.map(i=>`<div class="ci"><div class="im">${IM(i.e)}</div><div style="flex:1">${i.q} X ${i.n}${i.note?`<small style="display:block;color:#999">${i.note}</small>`:''}</div><div style="text-align:right;font-size:18px">${f(i.p*i.q)}${i.o!==i.p?`<s>${f(i.o*i.q)}</s>`:''}</div></div>`).join('')}
-  <div class="gap"></div><div class="sec" style="padding-bottom:4px"><span style="font-size:22px">✨</span><h4 style="font-size:18px">Hay được mua cùng</h4></div>
-  <div class="hz">${SODA.map((x,i)=>`<div onclick="addSoda(${i})"><div class="im">${IM('img/soda-'+i+'.jpg')}</div>${x[0]}<br><b>${f(x[1])}</b></div>`).join('')}</div><div class="gap"></div>
+  <div class="row2" style="font-weight:700;border:0">🏪 ${esc(s.n)}</div>
+  ${S.cart.map(i=>`<div class="ci"><div class="im">${IM(i.e)}</div><div style="flex:1">${i.q} X ${esc(i.n)}${i.note?`<small style="display:block;color:#999">${esc(i.note)}</small>`:''}</div><div style="text-align:right;font-size:18px">${f(i.p*i.q)}${i.o!==i.p?`<s>${f(i.o*i.q)}</s>`:''}</div></div>`).join('')}
+  <div class="gap"></div>${REAL?'':`<div class="sec" style="padding-bottom:4px"><span style="font-size:22px">✨</span><h4 style="font-size:18px">Hay được mua cùng</h4></div>
+  <div class="hz">${SODA.map((x,i)=>`<div onclick="addSoda(${i})"><div class="im">${IM('')}</div>${x[0]}<br><b>${f(x[1])}</b></div>`).join('')}</div><div class="gap"></div>`}
   <div class="sec" style="padding-bottom:4px"><span style="font-size:22px">🎁</span><h4 style="font-size:18px">Thưởng cho Tài xế</h4></div>
   <div class="tip">${[[0,'Chưa'],[5000,'5K'],[10000,'10K'],[20000,'20K'],[50000,'50K']].map(t=>`<button class="${S.tip===t[0]?'on':''}" onclick="S.tip=${t[0]};renderCo()">${t[1]}</button>`).join('')}</div><div class="gap"></div>
   <div class="row2">🏠 Giao tận cửa <span class="mu">[3.000đ]</span><div class="tg ${S.door?'on':''}" onclick="S.door=!S.door;renderCo()"></div></div>
@@ -279,27 +305,77 @@ function renderCo(){
   <button class="btn" ${S.addr&&S.name&&S.phone?'':'disabled'} onclick="order()">Đặt ngay</button></div>`;
   show('co')}
 function chk(){localStorage.tn_n=S.name;localStorage.tn_p=S.phone;const b=document.querySelector('#co .bar .btn');if(b)b.disabled=!(S.addr&&S.name&&S.phone)}
-async function order(){const c=calc(),s=SH[S.shop];chk();
- const o={shopId:s.fid||'',shopName:s.n,items:S.cart.map(i=>({n:i.n,q:i.q,p:i.p})),total:c.total,fee:c.fee,tip:S.tip,door:S.door,addr:S.addr,name:S.name,phone:S.phone,status:'new'};
+async function order(){if(REAL&&!S.user){openAuth('Đăng nhập để đặt hàng');return}
+ const c=calc(),s=SH[S.shop];if(s.open===false){toast('Quán đang đóng cửa');return}chk();
+ const o={shopId:s.fid||'',shopName:s.n,items:S.cart.map(i=>({n:i.n,q:i.q,p:i.p})),total:c.total,fee:c.fee,tip:S.tip,door:S.door,addr:S.addr,name:S.name,phone:S.phone,status:'new',userId:S.user?S.user.uid:''};
  try{if(window.FB)await FB.place(o);else S.orders.unshift({...o,id:'l'+Date.now()})}catch(e){console.error(e);toast('Không gửi được đơn, thử lại nhé');return}
  S.cart=[];S.tip=0;S.door=false;toast('Đặt hàng thành công!');go('act',1)}
 const SL={new:'Chờ quán nhận',accepted:'Quán đang chuẩn bị',ready:'Chờ tài xế nhận',delivering:'Tài xế đang giao',done:'Đã giao',cancelled:'Đã hủy'};
 function actTab(i,b){S.tab=i;document.querySelectorAll('#act .tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  if(REAL&&!S.user){$('#actb').innerHTML='<div class="empty"><h4>Bạn chưa đăng nhập</h4>Đăng nhập để xem và theo dõi đơn hàng<br><br><button class="btn" style="width:auto;padding:12px 28px" onclick="openAuth()">Đăng nhập</button></div>';return}
   const L=S.orders.filter(o=>(i===0)===!['done','cancelled'].includes(o.status));
-  $('#actb').innerHTML=L.length?L.map(o=>`<div class="ord"><b>${o.shopName}</b><p style="margin:6px 0">${o.items.map(x=>x.q+' x '+x.n).join(', ')}</p><p>${o.addr}</p><p style="margin-top:6px"><b style="color:var(--r)">${f(o.total)}</b> · <span style="color:#1a9a3a">${SL[o.status]||o.status}</span></p>${o.shipperName?`<p>Tài xế: ${o.shipperName} · <a href="tel:${o.shipperPhone}">${o.shipperPhone}</a></p>`:''}</div>`).join(''):i===0?'<div class="empty"><h4>Chưa có đơn hàng nào</h4>Đơn hàng của bạn sẽ xuất hiện tại đây sau khi bạn đặt hàng thành công</div>':'<div class="empty">Chưa có lịch sử đơn hàng</div>'}
+  $('#actb').innerHTML=L.length?L.map(o=>`<div class="ord"><b>${esc(o.shopName)}</b><p style="margin:6px 0">${o.items.map(x=>esc(x.q+' x '+x.n)).join(', ')}</p><p>${esc(o.addr)}</p><p style="margin-top:6px"><b style="color:var(--r)">${f(o.total)}</b> · <span style="color:#1a9a3a">${SL[o.status]||o.status}</span></p>${o.shipperName?`<p>Tài xế: ${esc(o.shipperName)} · <a href="tel:${esc(o.shipperPhone)}">${esc(o.shipperPhone)}</a></p>`:''}</div>`).join(''):i===0?'<div class="empty"><h4>Chưa có đơn hàng nào</h4>Đơn hàng của bạn sẽ xuất hiện tại đây sau khi bạn đặt hàng thành công</div>':'<div class="empty">Chưa có lịch sử đơn hàng</div>'}
 function inTab(i,b){document.querySelectorAll('#inb .tabs button').forEach(x=>x.classList.toggle('on',x===b));$('#inbb').innerHTML=i?'<i>🔔</i>Chưa có thông báo nào':'<i>💬</i>Chưa có tin nhắn nào'}
-function spin(){const s=SH[Math.floor(Math.random()*SH.length)];toast('🎰 Hôm nay ăn: '+s.n);setTimeout(()=>openShop(s.id),900)}
-renderHome();show('home');actTab(0,document.querySelector('#act .tabs button'));
+function spin(){if(!SH.length)return toast('Chưa có quán nào');const s=SH[Math.floor(Math.random()*SH.length)];toast('🎰 Hôm nay ăn: '+s.n);setTimeout(()=>openShop(s.id),900)}
+renderHome();renderAcc();show('home');actTab(0,document.querySelector('#act .tabs button'));
 </script>
 <script type="module">
-import {db,cfg} from './firebase-config.js';
-import {collection,getDocs,addDoc,doc,onSnapshot,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-if(!cfg.apiKey.startsWith('DÁN')){
- try{const r=await getDocs(collection(db,'shops'));const L=r.docs.map(d=>({fid:d.id,...d.data()})).filter(x=>x.open!==false);
-  if(L.length){SH.length=0;L.forEach((x,i)=>SH.push({id:i,fid:x.fid,n:x.name,i:x.img||'',hot:i<2,m:(x.menu||[]).map(m=>[m.n,m.d||'',m.p,m.o||0,m.img||''])}));S.shop=null;S.cart=[];renderHome()}}catch(e){console.warn(e)}
- const track=id=>onSnapshot(doc(db,'orders',id),d=>{if(!d.exists())return;const o={id,...d.data()},k=S.orders.findIndex(x=>x.id===id);k<0?S.orders.push(o):S.orders[k]=o;S.orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));if($('#act').classList.contains('on'))actTab(S.tab,document.querySelectorAll('#act .tabs button')[S.tab])});
- JSON.parse(localStorage.tn_o||'[]').forEach(track);
- window.FB={async place(o){const r=await addDoc(collection(db,'orders'),{...o,createdAt:serverTimestamp()});const a=JSON.parse(localStorage.tn_o||'[]');a.push(r.id);localStorage.tn_o=JSON.stringify(a);track(r.id);return r.id}};
+import {db,auth,ready} from './firebase-config.js';
+import {viErr} from './staff.js';
+import {collection,addDoc,doc,getDoc,setDoc,query,where,onSnapshot,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+const byTime=(a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0);
+const refreshAct=()=>{if($('#act').classList.contains('on'))actTab(S.tab,document.querySelectorAll('#act .tabs button')[S.tab])};
+const msg=(t,ok)=>{$('#am_m').textContent=t||'';$('#am_m').classList.toggle('ok',!!ok)};
+let mode='in',regBusy=false,unsub=null;
+
+/* ---------- Giao diện đăng nhập / đăng ký ---------- */
+window.openAuth=m=>{if(!ready){toast('Chưa cấu hình Firebase (xem README)');return}$('#am').hidden=false;msg(m);setTimeout(()=>$('#am_e').focus(),50)};
+window.closeAuth=()=>{$('#am').hidden=true};
+window.authMode=()=>{mode=mode==='in'?'up':'in';const up=mode==='up';$('#am_r').hidden=!up;$('#am_t').textContent=up?'Đăng ký tài khoản':'Đăng nhập';$('#am_b').textContent=up?'Đăng ký':'Đăng nhập';$('#am_s').textContent=up?'Đã có tài khoản? Đăng nhập':'Chưa có tài khoản? Đăng ký';msg('')};
+window.authBtn=async()=>{if(!ready)return toast('Chưa cấu hình Firebase (xem README)');if(S.user){await signOut(auth);go('home',0);toast('Đã đăng xuất')}else openAuth()};
+window.authForgot=async()=>{const e=$('#am_e').value.trim();if(!e)return msg('Nhập email rồi bấm "Quên mật khẩu".');try{await sendPasswordResetEmail(auth,e);msg('Đã gửi email đặt lại mật khẩu.',1)}catch(x){msg(viErr(x.code))}};
+window.authSubmit=async()=>{msg('');const e=$('#am_e').value.trim(),w=$('#am_w').value,btn=$('#am_b');btn.disabled=true;
+ try{
+  if(mode==='up'){const n=$('#am_n').value.trim(),ph=$('#am_p').value.replace(/\s/g,'');
+   if(!n)throw{code:'Vui lòng nhập họ tên.'};if(!/^(0|\+84)\d{8,10}$/.test(ph))throw{code:'Số điện thoại chưa đúng.'};
+   regBusy=true;const c=await createUserWithEmailAndPassword(auth,e,w);
+   await setDoc(doc(db,'users',c.user.uid),{role:'customer',name:n,phone:ph,email:e,approved:true,createdAt:serverTimestamp()});
+   regBusy=false;await loadProfile(c.user);toast('Đăng ký thành công')}
+  else{await signInWithEmailAndPassword(auth,e,w);toast('Đăng nhập thành công')}
+  $('#am_w').value='';closeAuth();
+ }catch(x){regBusy=false;msg(viErr(x.code||x.message))}
+ btn.disabled=false};
+
+/* ---------- Hồ sơ + đơn hàng theo tài khoản ---------- */
+async function loadProfile(u){
+ try{const d=await getDoc(doc(db,'users',u.uid));S.profile=d.exists()?d.data():null}catch(e){console.warn(e)}
+ if(S.profile){S.name=S.name||S.profile.name||'';S.phone=S.phone||S.profile.phone||''}
+ renderAcc()}
+function watchOrders(u){
+ unsub=onSnapshot(query(collection(db,'orders'),where('userId','==',u.uid)),s=>{S.orders=s.docs.map(d=>({id:d.id,...d.data()})).sort(byTime);refreshAct()},e=>console.warn(e))}
+
+/* ---------- Khởi động ---------- */
+if(ready){
+ REAL=true;SH.length=0;S.shop=null;S.cart=[];renderHome();renderAcc();refreshAct();
+ // Danh sách quán cập nhật theo thời gian thực
+ onSnapshot(collection(db,'shops'),r=>{
+  const cur=S.shop!==null&&SH[S.shop]?SH[S.shop].fid:null;
+  SH.length=0;
+  r.docs.forEach((d,i)=>{const x=d.data();SH.push({id:i,fid:d.id,n:x.name||'(chưa đặt tên)',i:x.img||'',addr:x.addr||'',phone:x.phone||'',hours:x.hours||'',open:x.open!==false,hot:!!x.hot,
+   m:(x.menu||[]).map(m=>[m.n,m.d||'',m.p,m.o||0,m.img||'',!!m.x])})});
+  const k=cur?SH.findIndex(x=>x.fid===cur):-1;
+  if(k<0){S.shop=null;S.cart=[]}else S.shop=k;
+  renderHome();
+  if(k>=0&&$('#store').classList.contains('on')){const y=$('#store').scrollTop;openShop(k);$('#store').scrollTop=y}
+ },e=>{console.warn(e);toast('Không tải được danh sách quán')});
+ onAuthStateChanged(auth,async u=>{
+  S.user=u;S.profile=null;S.orders=[];if(unsub){unsub();unsub=null}
+  if(u&&!regBusy){await loadProfile(u);watchOrders(u)}
+  else if(u){watchOrders(u)}
+  renderAcc();refreshAct()});
+ window.FB={async place(o){return (await addDoc(collection(db,'orders'),{...o,createdAt:serverTimestamp()})).id}};
 }
 </script>
 </body>
