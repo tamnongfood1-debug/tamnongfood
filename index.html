@@ -186,6 +186,11 @@ nav button.on{color:#d79300}
 .mini b{font-size:12.5px;font-weight:700}
 .dots{display:flex;justify-content:center;gap:6px;padding:0 0 6px}
 .dots:empty{display:none}
+.all{margin-left:auto;font-size:13px;font-weight:600;color:#d98200;cursor:pointer;white-space:nowrap}
+.srow{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #f2f2f2;cursor:pointer;align-items:center}
+.srow .im{width:72px;height:72px;border-radius:10px;flex:none}
+.srow h4{font-size:15px;font-weight:600;line-height:1.3}
+.srow p{font-size:12.5px;color:#8a8f98;margin-top:3px}
 .dots i{width:6px;height:6px;border-radius:3px;background:#ddd;transition:all .25s}
 .dots i.on{width:18px;background:var(--y)}
 @keyframes hotIn{from{opacity:0;transform:translateX(34px) scale(.95)}to{opacity:1;transform:none}}
@@ -306,7 +311,6 @@ nav button.on{color:#d79300}
 #toast{width:max-content;max-width:86vw;text-align:center;font-size:13.5px;padding:10px 16px}
 .slot{width:62px;height:62px;font-size:28px}
 
-@media (prefers-reduced-motion:reduce){.hot,.stp,.stp b,.cnt,#cb,.bump{animation:none}}
 </style>
 </head>
 <body>
@@ -314,22 +318,22 @@ nav button.on{color:#d79300}
 
 <div class="scr on" id="home">
   <div class="hd">
-    <div class="row"><div>Giao đến: <span class="chip">Tam Nông</span></div><div class="pill" onclick="toast('Chưa có ưu đãi mới')"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M12 8v13M3 12h18M12 8c-3 0-5-4-2-4 2 0 2 4 2 4zm0 0c3 0 5-4 2-4-2 0-2 4-2 4z"/></svg><div>Ưu đãi<small style="display:block;font-weight:400">cho bạn</small></div></div></div>
+    <div class="row"><div>Giao đến: <span class="chip">Tam Nông</span></div></div>
     <div class="addr" onclick="setAddr()"><span style="vertical-align:-5px"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></span> <span id="ad1">Chưa chọn địa chỉ</span></div>
   </div>
   <div class="srch"><span><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg></span><input id="q" placeholder='Tìm kiếm "Bún bò Hu"' oninput="renderHome()"></div>
-  <div class="cats"><div class="cat"><div><img src="cat-1.png" alt="Đồ ăn"></div>Đồ ăn</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-2.png" alt="Giao hàng"></div>Giao hàng</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-3.png" alt="Mua sắm"></div>Mua sắm</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-4.png" alt="Dịch vụ khác"></div>Dịch vụ khác</div></div>
-  <div class="ban"><img src="img/banner.jpg" alt="" onerror="this.parentNode.classList.add('nb');this.remove()"><div class="tx"><h3>TAM NÔNG GIẢM ĐẾN</h3><h2>50% PHÍ SHIP</h2><small>Trải nghiệm dịch vụ tiện lợi ngay hôm nay!</small></div></div>
-  <div class="sec"><i data-ic="bulb"></i><div><h4>Hôm nay ăn gì?</h4><p>Gợi ý cho bạn những món ngon</p></div></div>
+  <div class="cats"><div class="cat" onclick="openAll()"><div><img src="cat-1.png" alt="Đồ ăn"></div>Đồ ăn</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-2.png" alt="Giao hàng"></div>Giao hàng</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-3.png" alt="Mua sắm"></div>Mua sắm</div><div class="cat" onclick="toast('Sắp ra mắt')"><div><img src="cat-4.png" alt="Dịch vụ khác"></div>Dịch vụ khác</div></div>
+    <div class="sec"><i data-ic="bulb"></i><div><h4>Hôm nay ăn gì?</h4><p>Gợi ý cho bạn những món ngon</p></div><a class="all" onclick="openAll()">Xem tất cả</a></div>
   <div class="hs" id="h1"></div>
-  <div class="sec" id="hsec"><i data-ic="flame"></i><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div></div>
+  <div class="sec" id="hsec"><i data-ic="flame"></i><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div><a class="all" onclick="openAll()">Xem tất cả</a></div>
   <div class="hotrow" id="h2"></div>
   <div class="dots" id="hd"></div>
-  <div class="sec"><i data-ic="store"></i><div><h4>Quán ngon nhất định phải thử</h4><p>Khám phá các quán xung quanh vị trí của bạn</p></div></div>
+  <div class="sec"><i data-ic="store"></i><div><h4>Quán ngon nhất định phải thử</h4><p>Khám phá các quán xung quanh vị trí của bạn</p></div><a class="all" onclick="openAll()">Xem tất cả</a></div>
   <div class="hs" id="h3"></div>
 </div>
 
 <div class="scr" id="store"></div>
+<div class="scr" id="all"></div>
 <div class="scr fix" id="co"></div>
 
 <div class="scr" id="act">
@@ -459,14 +463,14 @@ function shareLoc(){
 function renderAcc(){const u=S.user,p=S.profile;
   $('#acHead').innerHTML=u?`<div class="av">${ic('user',40)}</div><div><b>${esc((p&&p.name)||u.email)}</b><span>${esc((p&&p.phone)||'')}</span><span style="display:block;font-size:13px">${esc(u.email)}</span></div>`:`<div class="av">${ic('user',40)}</div><div><b>Khách</b><span>Đăng nhập để đặt món và theo dõi đơn</span></div>`;
   $('#loBtn').textContent=u?'Đăng xuất':'Đăng nhập / Đăng ký';$('#loBtn').classList.toggle('in',!u)}
-let hotT=null,hotP=0,hotHtml='';
+let hotT=null,hotUser=false,hotHtml='';
 function hotInit(){
   const r=$('#h2');clearInterval(hotT);const cs=[...r.children];if(cs.length<2)return;
   const cur=()=>{if(r.scrollLeft+r.clientWidth>=r.scrollWidth-4)return cs.length-1;let b=0,d=1e9;cs.forEach((c,k)=>{const x=Math.abs(c.offsetLeft-14-r.scrollLeft);if(x<d){d=x;b=k}});return b};
   const dots=()=>{const k=cur();document.querySelectorAll('#hd i').forEach((e,j)=>e.classList.toggle('on',j===k))};
-  r.onscroll=dots;r.onpointerdown=r.onwheel=r.ontouchstart=()=>{hotP=Date.now()+8000};
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-  hotT=setInterval(()=>{if(!$('#home').classList.contains('on')||Date.now()<hotP)return;const n=(cur()+1)%cs.length;r.scrollTo({left:n?cs[n].offsetLeft-14:0,behavior:'smooth'})},4200)}
+  r.onscroll=dots;r.onpointerdown=r.onwheel=r.ontouchstart=()=>{hotUser=true;clearInterval(hotT)};
+  if(hotUser)return;
+  hotT=setInterval(()=>{if(hotUser){clearInterval(hotT);return}if(!$('#home').classList.contains('on'))return;const n=(cur()+1)%cs.length;r.scrollTo({left:n?cs[n].offsetLeft-14:0,behavior:'smooth'})},4200)}
 function renderHome(){
   const q=$('#q').value.toLowerCase().trim(),L=SH.filter(s=>!q||s.n.toLowerCase().includes(q)||s.m.some(m=>m[0].toLowerCase().includes(q)));
   const cd=s=>`<div class="card" onclick="openShop(${s.id})"><div class="im">${IM(s.i)}</div><h5>${esc(s.n)}</h5><p><span class="st">★</span> 5.0 · 30 phút${s.open===false?' · <span style="color:#c62912">Đóng cửa</span>':''}</p></div>`;
@@ -476,17 +480,21 @@ function renderHome(){
   if(html!==hotHtml){hotHtml=html;const r=$('#h2');r.innerHTML=html;r.scrollLeft=0;
     $('#hd').innerHTML=HT.length>1?HT.map((_,k)=>`<i class="${k?'':'on'}"></i>`).join(''):'';hotInit()}
   $('#h3').innerHTML=L.slice().reverse().map(cd).join('');
+  if($('#all').classList.contains('on'))openAll();
 }
 
 /* ---------- Trang quán ---------- */
+function openAll(){
+  $('#all').innerHTML=`<div class="top2"><button class="bk" onclick="show('home')">${ic('back')}</button>Tất cả quán (${SH.length})</div>`+
+   (SH.map(s=>`<div class="srow" onclick="openShop(${s.id})"><div class="im">${IM(s.i)}</div><div style="min-width:0"><h4>${esc(s.n)}</h4><p><span class="st">★</span> 5.0 · 30 phút · ${s.open===false?'<span style="color:#c62912">Đóng cửa</span>':'<span style="color:#1a7a35">Đang mở</span>'}</p>${s.addr?`<p>${esc(s.addr)}</p>`:''}</div></div>`).join('')||'<div class="empty">Chưa có quán nào</div>');
+  show('all')}
 function openShop(id){
   const s=SH[id];if(S.shop!==id){S.cart=[];S.shop=id}
   $('#store').innerHTML=`<div class="sh"><button class="bk" onclick="show('home')">${ic('back')}</button>${IM(s.i)}</div>
   <div class="si"><h2>${esc(s.n)}</h2><div class="meta"><span><span class="st">★</span> <b>5.0</b> · 30 phút chuẩn bị món</span></div>
   ${s.addr?`<div class="meta"><span>${ic('pin',16)} ${esc(s.addr)}</span></div>`:''}${s.phone?`<div class="meta"><span>${ic('phone',16)} <a href="tel:${esc(s.phone)}">${esc(s.phone)}</a></span></div>`:''}
   <div class="meta"><span>${ic('clock',16)} Hôm nay: ${esc(s.hours||'08:00 - 22:00')}</span>${s.open===false?'<span class="op" style="color:#c62912">Đang đóng cửa</span>':'<span class="op">Đang mở cửa</span>'}</div>
-  <div class="pr"><span><b>Ưu đãi</b>Giảm 1K cho đơn từ 1K</span><span><b>Ưu đãi</b>Giảm 12K cho đơn đầu</span></div>
-  <button class="bt" onclick="toast('Tính năng đặt nhóm sắp ra mắt')">Đặt nhóm</button><button class="bt" onclick="shareShop()">Chia sẻ quán</button></div>
+    <button class="bt" onclick="toast('Tính năng đặt nhóm sắp ra mắt')">Đặt nhóm</button><button class="bt" onclick="shareShop()">Chia sẻ quán</button></div>
   <div class="gap"></div><div class="mh">Thực đơn</div>
   ${s.m.map((m,i)=>dishRow(s,m,i)).join('')||'<div class="empty" style="padding:40px 20px">Quán chưa có món nào</div>'}
   <div class="bar" id="cb" style="display:none"><button class="btn cartb" onclick="renderCo()"></button></div>`;
@@ -509,7 +517,6 @@ function bump(){const b=document.querySelector('#cb .btn');if(!b)return;b.classL
 // Hiệu ứng món bay vào giỏ hàng
 function fly(r,src){
   const t=document.querySelector('#cb .cbi');if(!t||!r||!r.width){bump();return}
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches){bump();return}
   const b=t.getBoundingClientRect(),d=document.createElement('div');d.className='fly';
   if(src)d.style.backgroundImage='url('+JSON.stringify(src)+')';
   const x0=r.left+r.width/2-17,y0=r.top+r.height/2-17,dx=b.left+b.width/2-17-x0,dy=b.top+b.height/2-17-y0;
@@ -524,8 +531,8 @@ function cq(k,d){const c=S.cart[k];if(!c)return;c.q+=d;if(c.q<=0)S.cart.splice(k
 
 /* ---------- Xác nhận đơn ---------- */
 // Tổng tiền tính theo giá đã giảm của món (trước đây bị tính theo giá gốc)
-function calc(){const paid=S.cart.reduce((a,c)=>a+c.p*c.q,0),orig=S.cart.reduce((a,c)=>a+c.o*c.q,0),fee=12000,dis=1000,uu=1000,door=S.door?3000:0;
-  const total=Math.max(0,paid+fee+S.tip+door-dis-uu);return{sub:paid,fee,dis,uu,door,total,orig:orig+fee+S.tip+door}}
+function calc(){const paid=S.cart.reduce((a,c)=>a+c.p*c.q,0),orig=S.cart.reduce((a,c)=>a+c.o*c.q,0),fee=12000;
+  return{sub:paid,fee,total:paid+fee+S.tip,orig:orig+fee+S.tip}}
 function renderCo(){
   if(!S.cart.length){toast('Giỏ hàng trống');backStore();return}
   const el=$('#co'),y=el.scrollTop,c=calc(),s=SH[S.shop],has=!!(S.addr||S.loc),can=has&&S.name&&S.phone;
@@ -541,14 +548,11 @@ function renderCo(){
   <div class="hz">${SODA.map((x,i)=>`<div onclick="addSoda(${i})"><div class="im">${IM('')}</div>${x[0]}<br><b>${f(x[1])}</b></div>`).join('')}</div><div class="gap"></div>`}
   <div class="sec sm"><i>${ic('gift',16)}</i><h4>Thưởng cho tài xế</h4></div>
   <div class="tip">${[[0,'Chưa'],[5000,'5K'],[10000,'10K'],[20000,'20K'],[50000,'50K']].map(t=>`<button class="${S.tip===t[0]?'on':''}" onclick="S.tip=${t[0]};renderCo()">${t[1]}</button>`).join('')}</div><div class="gap"></div>
-  <div class="row2"><span style="display:flex;align-items:center;gap:10px">${ic('door')} Giao tận cửa</span><span class="mu" style="margin-left:auto">+3.000đ</span><div class="tg ${S.door?'on':''}" onclick="S.door=!S.door;renderCo()"></div></div>
   <div class="row2"><span style="display:flex;align-items:center;gap:10px;flex:none">${ic('note')} Ghi chú</span><input placeholder="Không có" value="${esc(S.note)}" oninput="S.note=this.value" style="text-align:right"></div><div class="gap"></div>
-  <div class="vc"><i>${ic('tag',22)}</i><div><b>TAMNONG</b><span>Giảm 1.000đ cho đơn hàng</span></div></div>
-  <div class="pay"><h4>Chi tiết thanh toán</h4>
+    <div class="pay"><h4>Chi tiết thanh toán</h4>
   <div><span>Tổng tạm tính</span><span>${f(c.sub)}</span></div><div><span>Phí áp dụng</span><span>${f(c.fee)}</span></div>
-  ${S.tip?`<div><span>Thưởng tài xế</span><span>${f(S.tip)}</span></div>`:''}${S.door?`<div><span>Giao tận cửa</span><span>${f(3000)}</span></div>`:''}
-  <div class="gr"><span>Giảm giá</span><span>-${f(c.dis)}</span></div><div class="gr"><span>Ưu đãi Tam Nông</span><span>-${f(c.uu)}</span></div>
-  <div class="tt"><span>Thành tiền</span><span>${f(c.total)}</span></div><small>Giá đã bao gồm thuế VAT</small></div>
+  ${S.tip?`<div><span>Thưởng tài xế</span><span>${f(S.tip)}</span></div>`:''}
+    <div class="tt"><span>Thành tiền</span><span>${f(c.total)}</span></div><small>Giá đã bao gồm thuế VAT</small></div>
   <div class="bar"><div class="tot"><div><span>Tổng cộng</span>${c.orig>c.total?`<small class="sv">Tiết kiệm ${f(c.orig-c.total)}</small>`:''}</div><div class="tr"><b>${f(c.total)}</b>${c.orig>c.total?`<s>${f(c.orig)}</s>`:''}</div></div>
   ${has?'':'<div class="err">Bạn chưa có địa chỉ giao hàng. Hãy nhập địa chỉ hoặc chia sẻ vị trí để tiếp tục.</div>'}
   <button class="btn" ${can?'':'disabled'} onclick="order()">Đặt ngay</button></div>`;
@@ -556,11 +560,11 @@ function renderCo(){
 function chk(){localStorage.tn_n=S.name;localStorage.tn_p=S.phone;const b=document.querySelector('#co .bar .btn');if(b)b.disabled=!((S.addr||S.loc)&&S.name&&S.phone)}
 async function order(){if(order.b)return;if(REAL&&!S.user){openAuth('Đăng nhập để đặt hàng');return}
  const c=calc(),s=SH[S.shop];if(s.open===false){toast('Quán đang đóng cửa');return}chk();
- const o={shopId:s.fid||'',shopName:s.n,items:S.cart.map(i=>({n:i.n,q:i.q,p:i.p})),total:c.total,fee:c.fee,tip:S.tip,door:S.door,addr:S.addr||'Vị trí GPS khách chia sẻ',name:S.name,phone:S.phone,note:(S.note||'').trim(),status:'new',userId:S.user?S.user.uid:''};
+ const o={shopId:s.fid||'',shopName:s.n,items:S.cart.map(i=>({n:i.n,q:i.q,p:i.p})),total:c.total,fee:c.fee,tip:S.tip,addr:S.addr||'Vị trí GPS khách chia sẻ',name:S.name,phone:S.phone,note:(S.note||'').trim(),status:'new',userId:S.user?S.user.uid:''};
  if(S.loc){o.lat=S.loc.lat;o.lng=S.loc.lng;o.acc=S.loc.acc}
  order.b=1;
  try{if(window.FB)await FB.place(o);else S.orders.unshift({...o,id:'l'+Date.now()})}catch(e){console.error(e);toast('Không gửi được đơn, thử lại nhé');order.b=0;return}
- order.b=0;S.cart=[];S.tip=0;S.door=false;S.note='';toast('Đặt hàng thành công!');go('act',1)}
+ order.b=0;S.cart=[];S.tip=0;S.note='';toast('Đặt hàng thành công!');go('act',1)}
 const SL={new:'Chờ quán nhận',accepted:'Quán đang chuẩn bị',ready:'Chờ tài xế nhận',delivering:'Tài xế đang giao',done:'Đã giao',cancelled:'Đã hủy'};
 function actTab(i,b){S.tab=i;document.querySelectorAll('#act .tabs button').forEach(x=>x.classList.toggle('on',x===b));
   if(REAL&&!S.user){$('#actb').innerHTML='<div class="empty"><h4>Bạn chưa đăng nhập</h4>Đăng nhập để xem và theo dõi đơn hàng<br><br><button class="btn" style="width:auto;padding:12px 28px" onclick="openAuth()">Đăng nhập</button></div>';return}
