@@ -2,61 +2,210 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signed() { return request.auth != null; }
-    function myDoc() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
-    function hasDoc() { return exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
-    function isRole(r) { return signed() && hasDoc() && myDoc().role == r && myDoc().approved == true; }
-    function isAdmin() { return isRole('admin'); }
-    function isShop() { return isRole('shop'); }
-    function isShipper() { return isRole('shipper'); }
+    function signedIn() { return request.auth != null; }
+    function me() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() { return signedIn() && me().role == 'admin'; }
+    function isSeller() { return signedIn() && me().role == 'seller'; }
+    function isShipper() { return signedIn() && me().role == 'shipper'; }
+    // Quán đang mở cửa? open=false là công tắc tổng; autoHours bật thì chỉ nhận đơn trong khung giờ openMin..closeMin (phút từ 0h, giờ Việt Nam UTC+7). Hỗ trợ qua đêm; mở = đóng nghĩa là cả ngày.
+    function shopOpenNow(sh) {
+      return sh.get('open', true) != false
+        && (sh.get('autoHours', false) != true
+            || sh.openMin == sh.closeMin
+            || (sh.openMin < sh.closeMin
+                && (request.time.toMillis() + 25200000) % 86400000 >= sh.openMin * 60000
+                && (request.time.toMillis() + 25200000) % 86400000 < sh.closeMin * 60000)
+            || (sh.openMin > sh.closeMin
+                && ((request.time.toMillis() + 25200000) % 86400000 >= sh.openMin * 60000
+                    || (request.time.toMillis() + 25200000) % 86400000 < sh.closeMin * 60000)));
+    }
+    function changedOnly(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
 
-    // Tài khoản
+    // Hồ sơ người dùng: khách tự tạo hồ sơ với vai trò customer; chỉ admin đổi vai trò
     match /users/{uid} {
-      allow read: if signed() && (request.auth.uid == uid || isAdmin());
-      // Tự đăng ký: khách được duyệt ngay, quán/tài xế phải chờ admin. Không ai tự tạo được admin.
-      allow create: if signed() && request.auth.uid == uid
-        && request.resource.data.role in ['customer', 'shop', 'shipper']
-        && request.resource.data.approved == (request.resource.data.role == 'customer')
-        && !('shopId' in request.resource.data);
-      allow update: if isAdmin()
-        || (signed() && request.auth.uid == uid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone']));
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if signedIn() && request.auth.uid == uid
+                    && request.resource.data.role == 'customer'
+                    && !('shopId' in request.resource.data);
+      allow update: if isAdmin() || (request.auth.uid == uid && changedOnly(['name', 'address']));
       allow delete: if isAdmin();
     }
 
-    // Quán: ai cũng xem được; admin thêm/sửa/xóa; chủ quán chỉ sửa thực đơn và trạng thái mở cửa
-    match /shops/{id} {
+    // Thiết bị nhận thông báo đẩy của khách (token FCM): mỗi người chỉ ghi/đọc/xóa token của chính mình; Apps Script gửi tin bằng quyền riêng của chủ script
+    match /users/{uid}/devices/{tokenId} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['token', 'ua', 'updatedAt'])
+        && request.resource.data.token is string && request.resource.data.token == tokenId
+        && request.resource.data.token.size() < 600;
+    }
+
+    // Trạng thái ONLINE của shipper (presence/{uid}): shipper chỉ ghi/đọc của chính mình; Admin xem tất cả để biết ai đang online.
+    // Apps Script đọc bằng quyền riêng của chủ script để chỉ báo đơn mới qua Zalo cho shipper đang online
+    match /presence/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create, update: if signedIn() && request.auth.uid == uid && (isShipper() || isAdmin())
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'online', 'since', 'lastSeen'])
+        && request.resource.data.online is bool;
+      allow delete: if isAdmin();
+    }
+
+    // Cửa hàng: ai cũng xem được; admin sửa tất cả; nhà bán hàng chỉ sửa cửa hàng của mình
+    match /shops/{shopId} {
       allow read: if true;
       allow create, delete: if isAdmin();
+      // Vị trí GPS (lat, lng): chủ quán chỉ được lưu 1 lần; chỉ Admin mới đặt lại được
+      // Phí giao hàng (shipFee, freeShipMin) CHỈ Admin được sửa
+      allow update: if isAdmin() || (isSeller() && me().shopId == shopId
+        && changedOnly(['menu', 'open', 'desc', 'eta', 'sale', 'img', 'phone', 'address', 'lat', 'lng', 'locAcc', 'locAt', 'autoHours', 'openAt', 'closeAt', 'openMin', 'closeMin'])
+        && (resource.data.get('lat', null) == null
+            || (request.resource.data.lat == resource.data.lat && request.resource.data.lng == resource.data.lng)));
+    }
+
+    match /promos/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // Đơn nháp do quán tạo hộ khách (drafts/{id}): ID ngẫu nhiên nên ai có link mới mở được (chỉ get, không list).
+    // Quán chỉ tạo/xem/xóa nháp của quán mình; khách (đăng nhập ẩn danh trên trang dat.html) chỉ được đánh dấu "used" sau khi đặt đơn.
+    match /drafts/{id} {
+      allow get: if true;
+      allow list: if isAdmin() || (isSeller() && resource.data.shopId == me().shopId);
+      allow create: if isSeller() && request.resource.data.shopId == me().shopId
+        && request.resource.data.keys().hasOnly(['shopId', 'shopName', 'items', 'customerName', 'customerPhone', 'address', 'note', 'status', 'createdAtMs', 'createdBy'])
+        && request.resource.data.status == 'open'
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.items is list && request.resource.data.items.size() > 0 && request.resource.data.items.size() <= 40
+        && request.resource.data.customerName is string && request.resource.data.customerName.size() <= 80
+        && request.resource.data.customerPhone is string && request.resource.data.customerPhone.size() <= 20
+        && request.resource.data.address is string && request.resource.data.address.size() <= 300
+        && request.resource.data.note is string && request.resource.data.note.size() <= 300
+        && request.resource.data.createdAtMs is number;
       allow update: if isAdmin()
-        || (isShop() && myDoc().shopId == id
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['menu', 'open']));
+        || (signedIn() && resource.data.status == 'open' && request.resource.data.status == 'used' && changedOnly(['status', 'usedAt', 'orderId']));
+      allow delete: if isAdmin() || (isSeller() && me().shopId == resource.data.shopId);
+    }
+    // Đánh dấu Admin đã chuyển khoản bù giảm giá cho quán theo ngày (settlements/{yyyy-mm-dd}): chỉ Admin đọc/ghi
+    match /settlements/{id} { allow read, write: if isAdmin(); }
+    // Bản riêng từng quán (id = yyyy-mm-dd_shopId): Admin ghi; chủ quán chỉ đọc được của quán mình để biết đã được bù chưa
+    match /shopSettlements/{id} { allow read: if isAdmin() || (isSeller() && id.split('_')[1] == me().shopId); allow write: if isAdmin(); }
+    // settings/notify chứa Zalo ID nhận báo đơn: CHỈ Admin đọc (Apps Script đọc bằng quyền riêng của chủ script)
+    match /settings/{id} { allow read: if id != 'notify' || isAdmin(); allow write: if isAdmin(); }
+
+    // Yêu cầu rút tiền từ ví tài xế: shipper chỉ tạo/đọc của mình (trạng thái pending); chỉ Admin duyệt (paid / rejected)
+    match /payouts/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isShipper() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'amount', 'bankName', 'bankAccount', 'bankHolder', 'status', 'createdAt'])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.amount is number && request.resource.data.amount >= 10000 && request.resource.data.amount <= 20000000;
+      allow update, delete: if isAdmin();
+    }
+
+    // Vị trí khách đã lưu cho Gọi ship (id = số điện thoại dạng 0xxxxxxxxx): CHỈ Admin đọc/ghi (Apps Script đọc bằng quyền riêng của chủ script)
+    match /shipCustomers/{phone} { allow read, write: if isAdmin(); }
+
+    // Gọi ship (đơn ngoài app): quán gửi SĐT khách + vị trí quán; Admin liên hệ khách, tạo đơn Giao hàng rồi đánh dấu 'ordered'.
+    // Quán chỉ tạo / xem / hủy yêu cầu của quán mình (khi còn 'new'); Admin xem và sửa tất cả.
+    match /shipCalls/{id} {
+      allow read: if isAdmin() || (isSeller() && resource.data.shopId == me().shopId);
+      allow create: if isSeller() && request.resource.data.shopId == me().shopId
+        && request.resource.data.keys().hasOnly(['shopId', 'shopName', 'shopPhone', 'shopAddress', 'shopLat', 'shopLng', 'customerPhone', 'cod', 'note', 'status', 'createdAtMs', 'createdBy'])
+        && request.resource.data.status == 'new'
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.customerPhone is string && request.resource.data.customerPhone.size() >= 9 && request.resource.data.customerPhone.size() <= 15
+        && request.resource.data.note is string && request.resource.data.note.size() <= 300
+        && request.resource.data.cod is number && request.resource.data.cod >= 0 && request.resource.data.cod <= 20000000
+        && request.resource.data.shopLat is number && request.resource.data.shopLng is number
+        && request.resource.data.shopName is string && request.resource.data.shopName.size() <= 100
+        && request.resource.data.shopAddress is string && request.resource.data.shopAddress.size() <= 300
+        && request.resource.data.shopPhone is string && request.resource.data.shopPhone.size() <= 20
+        && request.resource.data.createdAtMs is number;
+      allow update: if isAdmin()
+        || (isSeller() && me().shopId == resource.data.shopId && resource.data.status == 'new'
+            && request.resource.data.status == 'cancelled' && changedOnly(['status', 'updatedAt']));
+      allow delete: if isAdmin();
     }
 
     // Đơn hàng
     match /orders/{id} {
-      allow create: if signed()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.status == 'new'
-        && request.resource.data.shopId is string
-        && request.resource.data.shopId != '';
-      allow read: if signed() && (
-        resource.data.userId == request.auth.uid
-        || isAdmin()
-        || (isShop() && myDoc().shopId == resource.data.shopId)
-        || (isShipper() && (resource.data.status == 'ready' || resource.data.shipperId == request.auth.uid)));
+      allow read: if signedIn() && (
+        resource.data.uid == request.auth.uid ||
+        isAdmin() ||
+        (isSeller() && me().shopId == resource.data.shopId) ||
+        (isShipper() && (resource.data.status in ['pending', 'confirmed', 'preparing', 'ready'] || resource.data.shipperUid == request.auth.uid)));
+
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        // chế độ bảo trì (Admin bật ở settings/app.maintenanceOn): khách không đặt được đơn mới
+        && (!exists(/databases/$(database)/documents/settings/app)
+            || get(/databases/$(database)/documents/settings/app).data.get('maintenanceOn', false) != true)
+        && request.resource.data.items.size() > 0 && request.resource.data.items.size() <= 40
+        && request.resource.data.code is string && request.resource.data.code.size() <= 20
+        && request.resource.data.address is string && request.resource.data.address.size() <= 300
+        && request.resource.data.total is number && request.resource.data.total >= 0
+        // chặn giá trị vô lý (âm / giảm quá tạm tính / phí ship quá cao) và chặn khách tự gắn shipper
+        && request.resource.data.subtotal is number && request.resource.data.subtotal >= 0
+        && request.resource.data.discount is number && request.resource.data.discount >= 0 && request.resource.data.discount <= request.resource.data.subtotal
+        && request.resource.data.shipFee is number && request.resource.data.shipFee >= 0 && request.resource.data.shipFee <= 300000
+        && !('shipperUid' in request.resource.data)
+        // phụ phí thời tiết xấu (Admin bật): số không âm, không quá 100.000đ và nằm trong phí ship
+        && request.resource.data.get('weatherFee', 0) is number && request.resource.data.get('weatherFee', 0) >= 0
+        && request.resource.data.get('weatherFee', 0) <= 100000 && request.resource.data.get('weatherFee', 0) <= request.resource.data.shipFee
+        // thanh toán: chỉ tiền mặt hoặc chuyển khoản (chuyển khoản chỉ khi Admin đang bật); khách KHÔNG được tự đánh dấu đã trả
+        && request.resource.data.get('payment', 'cash') in ['cash', 'bank']
+        && (request.resource.data.get('payment', 'cash') == 'cash'
+            || get(/databases/$(database)/documents/settings/app).data.get('bankEnabled', false) == true)
+        && request.resource.data.get('payStatus', 'unpaid') == 'unpaid'
+        && !('paidAt' in request.resource.data) && !('customerPaid' in request.resource.data)
+        // giảm giá do Tam Nông Ăn Gì chịu (platformOff): không âm, nằm trong discount, và không vượt mức % Admin đang bật (settings/app.platformPct)
+        && request.resource.data.get('platformOff', 0) is number
+        && request.resource.data.get('platformOff', 0) >= 0
+        && request.resource.data.get('platformOff', 0) <= request.resource.data.discount
+        && (request.resource.data.get('platformOff', 0) == 0
+            || request.resource.data.get('platformOff', 0) <= request.resource.data.subtotal * get(/databases/$(database)/documents/settings/app).data.get('platformPct', 0) / 100 + 1)
+        // tổng tiền phải khớp: tạm tính - giảm giá + phí ship; quán phải tồn tại
+        && request.resource.data.total == request.resource.data.subtotal - request.resource.data.discount + request.resource.data.shipFee
+        // đơn đồ ăn: quán phải tồn tại + tạm tính > 0. Đơn Giao hàng / Mua hộ (type): không thuộc quán nào, không có tiền hàng, chỉ có phí ship
+        && (
+          (request.resource.data.get('type', 'food') == 'food' && request.resource.data.subtotal > 0
+            && exists(/databases/$(database)/documents/shops/$(request.resource.data.shopId))
+            // quán đang đóng cửa (tắt thủ công hoặc ngoài giờ tự động) thì không nhận đơn
+            && shopOpenNow(get(/databases/$(database)/documents/shops/$(request.resource.data.shopId)).data))
+          || (request.resource.data.get('type', 'food') in ['delivery', 'errand'] && request.resource.data.subtotal == 0
+            && request.resource.data.discount == 0 && request.resource.data.shopId == 'svc-' + request.resource.data.type)
+        )
+        // phần phí ship do Admin chịu (freeship / voucher ship) → cộng vào ví tài xế: số không âm, mỗi loại không quá 100.000đ
+        && request.resource.data.get('adminShip', 0) is number && request.resource.data.get('adminShip', 0) >= 0 && request.resource.data.get('adminShip', 0) <= 100000
+        && request.resource.data.get('shipVoucherOff', 0) is number && request.resource.data.get('shipVoucherOff', 0) >= 0 && request.resource.data.get('shipVoucherOff', 0) <= 100000
+        // bắt buộc có vị trí GPS của khách
+        && request.resource.data.lat is number && request.resource.data.lng is number;
+
       allow update: if isAdmin()
-        || (isShop() && myDoc().shopId == resource.data.shopId
-            && request.resource.data.status in ['accepted', 'ready', 'cancelled']
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))
-        || (isShipper() && (
-            (resource.data.status == 'ready' && !('shipperId' in resource.data)
-              && request.resource.data.status == 'delivering'
-              && request.resource.data.shipperId == request.auth.uid
-              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'shipperId', 'shipperName', 'shipperPhone']))
-            || (resource.data.shipperId == request.auth.uid && resource.data.status == 'delivering'
-              && request.resource.data.status == 'done'
-              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))));
+        // khách tự hủy khi quán chưa nhận
+        || (resource.data.uid == request.auth.uid && resource.data.status == 'pending'
+            && request.resource.data.status == 'cancelled' && changedOnly(['status', 'updatedAt']))
+        // khách báo "Tôi đã chuyển khoản" (chỉ đơn chuyển khoản đang xử lý); việc XÁC NHẬN đã nhận tiền (payStatus) chỉ Admin làm được
+        || (resource.data.uid == request.auth.uid && resource.data.get('payment', 'cash') == 'bank'
+            && resource.data.status in ['pending', 'confirmed', 'preparing', 'ready', 'delivering']
+            && request.resource.data.customerPaid == true && changedOnly(['customerPaid', 'customerPaidAt', 'updatedAt']))
+        // khách đánh giá quán 1-5 sao sau khi đơn giao thành công: CHỈ 1 LẦN (đã có rating thì không sửa được nữa), không đụng updatedAt để không lệch doanh thu theo ngày
+        || (resource.data.uid == request.auth.uid && resource.data.status == 'done'
+            && resource.data.get('type', 'food') == 'food'
+            && !('rating' in resource.data)
+            && request.resource.data.rating is int && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+            && request.resource.data.ratedAt == request.time
+            && changedOnly(['rating', 'ratedAt']))
+        // shipper nhận đơn ngay khi khách đặt (quán không được đổi trạng thái đơn)
+        || (isShipper() && resource.data.status in ['pending', 'confirmed', 'preparing', 'ready'] && request.resource.data.status == 'delivering'
+            && request.resource.data.shipperUid == request.auth.uid
+            && changedOnly(['status', 'shipperUid', 'shipperName', 'shipperPhone', 'updatedAt']))
+        // shipper hoàn thành đơn của mình
+        || (isShipper() && resource.data.shipperUid == request.auth.uid && resource.data.status == 'delivering'
+            && request.resource.data.status == 'done' && changedOnly(['status', 'updatedAt']));
+      allow delete: if isAdmin();
     }
   }
 }
