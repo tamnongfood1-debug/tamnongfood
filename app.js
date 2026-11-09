@@ -360,12 +360,19 @@
   }
   /* ---- Quán hot: mỗi lần 1 quán + 3 món, tự chuyển sau 3,5 giây (dùng chung Trang chủ & Cá nhân) ---- */
   const HOT = { i:0, pause:0 };
-  const hotShops = n => SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false)
-    .sort((a, b) => (b.hot - a.hot) || (b.featured - a.featured) || (b.sold - a.sold) || (b.rate - a.rate)).slice(0, n);
+  const hasDish = s => s.menu.some(m => m[2] !== false && m[0]);
+  const hotShops = n => {
+    const all = SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false)
+      .sort((a, b) => (b.hot - a.hot) || (b.featured - a.featured) || (b.sold - a.sold) || (b.rate - a.rate));
+    const withMenu = all.filter(hasDish);
+    return (withMenu.length ? withMenu : all).slice(0, n);   // chỉ quay vòng các quán đã có món; chưa quán nào có món thì mới hiện quán trống
+  };
   const hotTags = s => `${s.sale ? `<span>Giảm ${s.sale}%</span>` : '<span>Món ngon</span>'}${s.ship ? `<span>Freeship từ ${s.ship}</span>` : '<span>Được yêu thích</span>'}`;
   const hotHead = act => `<div class="tn-sec"><span class="tn-ico tn-flame">🔥</span><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div><button class="tn-more" data-act="${act}">Xem tất cả</button></div>`;
   /* 3 món: ưu tiên món đang bán và có ảnh */
-  const hotDishes = s => { const ok = s.menu.filter(m => m[2] !== false && m[0]); return [...ok.filter(m => m[4]), ...ok.filter(m => !m[4])].slice(0, 3); };
+  const shuffle = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  /* Ngẫu nhiên 3 món đang bán (mỗi lần quán hiện lên bốc lại); ưu tiên món có ảnh, thiếu thì bù món chưa có ảnh */
+  const hotDishes = s => { const ok = s.menu.filter(m => m[2] !== false && m[0]); return [...shuffle(ok.filter(m => m[4])), ...shuffle(ok.filter(m => !m[4]))].slice(0, 3); };
   const hotSlide = s => {
     const d = hotDishes(s);
     return `<article class="hot-card" data-shop="${s.id}"><span class="tn-rb">HOT</span>
