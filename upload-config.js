@@ -4,4 +4,4 @@
 //  Cách tạo: xem HUONG-DAN.md, mục "Lưu ảnh lên Google Drive".
 //  Để trống = chưa bật tính năng tải ảnh lên.
 // ============================================================
-export const UPLOAD_URL = "1xyQ5lkRU5u9GyfLFnq2GW_N9WXDhuzWR";
+export const UPLOAD_URL = "https://script.google.com/macros/s/AKfycbyjKB2KiOer2jNZ26aLIgWAnSVxVl8ltCOQRwzQbaFjsBnVaGi_FVtBzeOsLSk30BnY/exec";
