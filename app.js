@@ -340,9 +340,8 @@
   }
   /* ---- Giao diện Tam Nông: danh mục, "Hôm nay ăn gì?", "Quán hot", nút quay "Ăn gì?" ---- */
   const TN_CATS = [
-    { k:'food', t:'Đồ ăn', img:'cat-1.png' }, { act:'svc-delivery', t:'Giao hàng', img:'cat-2.png' },
-    { act:'svc-errand', t:'Mua sắm', img:'cat-3.png' }, { k:'service', t:'Dịch vụ khác', img:'cat-4.png' },
-    { k:'fresh', t:'Thực phẩm sống', img:'icon-fresh.png' }, { k:'fashion', t:'Thời trang', img:'icon-fashion.png' },
+    { k:'food', t:'Đồ ăn', img:'cat-1.png' }, { k:'fresh', t:'Thực phẩm sống', img:'icon-fresh.png' },
+    { k:'fashion', t:'Thời trang', img:'icon-fashion.png' }, { k:'service', t:'Dịch vụ khác', img:'cat-4.png' },
   ];
   const tnCats = () => TN_CATS.map(c => `<button class="service ${c.k && c.k === S.home.sector ? 'active' : ''}" ${c.k ? `data-svc="${c.k}"` : `data-act="${c.act}"`}><span class="ic"><img src="${c.img}" alt="" width="40" height="40" loading="eager" decoding="async"></span>${c.t}</button>`).join('');
   let TN_SEED = Math.random();
