@@ -155,7 +155,7 @@
     if (S.tab !== 'home') go('home', false);
     openShopPage(sh);
   }
-  const SP = { id:null, cat:'Tất cả' };
+  const SP = { id:null, cat:'Tất cả', q:'', sq:false };
   let shopPageOpen = false;
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const zaloLink = () => { const z = String(CONTACT.zalo || '').trim(); if (!z) return ''; if (/^(https?:)?\/\//i.test(z)) return z; if (/^(zalo\.me|chat\.zalo\.me)\//i.test(z)) return 'https://' + z; const d = z.replace(/[\s.\-()]/g, '').replace(/^\+?84/, '0'); return /^\d{8,15}$/.test(d) ? 'https://zalo.me/' + d : ''; };
@@ -356,35 +356,53 @@
     const today = tnPick(food, 8);
     return `<div class="tn-sec"><span class="tn-ico">💡</span><div><h4>Hôm nay ăn gì?</h4><p>Gợi ý cho bạn những món ngon</p></div><button class="tn-more" data-act="see-all">Xem tất cả</button></div>
       <div class="tn-hs">${today.map(s => `<article class="tn-card" data-shop="${s.id}"><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><h5>${s.name}</h5><p>${tnRate(s)}</p></article>`).join('')}</div>
-      ${hotSectionHtml('see-all')}`;
+      ${hotSectionHtml('hot-all')}`;
   }
-  /* ---- Quán hot: dùng chung cho Trang chủ và trang Cá nhân (có hiệu ứng chuyển động) ---- */
+  /* ---- Quán hot: mỗi lần 1 quán + 3 món, tự chuyển sau 3,5 giây (dùng chung Trang chủ & Cá nhân) ---- */
+  const HOT = { i:0, pause:0 };
   const hotShops = n => SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false)
     .sort((a, b) => (b.hot - a.hot) || (b.featured - a.featured) || (b.sold - a.sold) || (b.rate - a.rate)).slice(0, n);
   const hotTags = s => `${s.sale ? `<span>Giảm ${s.sale}%</span>` : '<span>Món ngon</span>'}${s.ship ? `<span>Freeship từ ${s.ship}</span>` : '<span>Được yêu thích</span>'}`;
-  const hotHead = act => `<div class="tn-sec tn-fx"><span class="tn-ico tn-flame">🔥</span><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div><button class="tn-more" data-act="${act}">Xem tất cả</button></div>`;
-  const hotListHtml = list => list.map((s, i) => `<article class="tn-hot tn-in" data-shop="${s.id}" style="--d:${i * 90}ms"><span class="tn-rb">HOT</span><span class="tn-rank">${i + 1}</span><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><div><h5>${s.name}</h5><p>${tnRate(s)}</p><div class="tn-tags">${hotTags(s)}</div></div></article>`).join('');
-  function hotSectionHtml(act) {
-    const l = hotShops(4);
-    return l.length ? hotHead(act) + hotListHtml(l) : '';
+  const hotHead = act => `<div class="tn-sec"><span class="tn-ico tn-flame">🔥</span><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div><button class="tn-more" data-act="${act}">Xem tất cả</button></div>`;
+  /* 3 món: ưu tiên món đang bán và có ảnh */
+  const hotDishes = s => { const ok = s.menu.filter(m => m[2] !== false && m[0]); return [...ok.filter(m => m[4]), ...ok.filter(m => !m[4])].slice(0, 3); };
+  const hotSlide = s => {
+    const d = hotDishes(s);
+    return `<article class="hot-card" data-shop="${s.id}"><span class="tn-rb">HOT</span>
+      <div class="hc-top"><img class="hc-img" src="${s.img}" alt="${esc(s.name)}" decoding="async"><div class="hc-info"><h5>${s.name}</h5><p>${tnRate(s)}</p><div class="tn-tags">${hotTags(s)}</div></div></div>
+      ${d.length ? `<div class="hc-dishes">${d.map(m => `<div class="hc-dish">${m[4] ? `<img src="${m[4]}" alt="${m[0]}" loading="lazy" decoding="async">` : `<div class="ph">${(m[0] || '?').trim().charAt(0).toUpperCase()}</div>`}<b>${m[0]}</b><span>${money(m[1])}</span></div>`).join('')}</div>` : ''}</article>`;
+  };
+  function hotRotHtml() {
+    const l = hotShops(6); if (!l.length) return '';
+    const i = HOT.i % l.length;
+    return `<div class="hot-rot" data-n="${l.length}"><div class="hot-stage">${hotSlide(l[i])}</div><div class="hot-dots">${l.map((_, j) => `<button class="${j === i ? 'on' : ''}" data-hotgo="${j}" aria-label="Quán hot ${j + 1}"></button>`).join('')}</div></div>`;
   }
-  /* Trang Cá nhân: băng chuyền ngang tự trượt, thẻ nổi lên lần lượt */
-  function hotCarouselHtml() {
-    const l = hotShops(6);
-    if (!l.length) return LIVE && !shopsLoaded ? `<div class="empty" style="padding:18px"><b>Đang tải quán hot…</b></div>` : '';
-    return hotHead('hot-all') + `<div class="tn-hs tn-hs-auto" id="hot-rail">${l.map((s, i) => `<article class="tn-card tn-in" data-shop="${s.id}" style="--d:${i * 80}ms"><span class="tn-rb tn-rb2">HOT</span><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><h5>${s.name}</h5><p>${tnRate(s)}</p><div class="tn-tags">${hotTags(s)}</div></article>`).join('')}</div>`;
+  const hotSectionHtml = act => { const h = hotRotHtml(); return h ? hotHead(act) + h : ''; };
+  function hotShow(j, dir = 1) {
+    const l = hotShops(6); if (!l.length) return;
+    HOT.i = ((j % l.length) + l.length) % l.length;
+    $$('.hot-rot').forEach(r => {
+      if (+r.dataset.n !== l.length) { r.outerHTML = hotRotHtml(); return; }
+      const st = r.querySelector('.hot-stage'); if (!st) return;
+      $$('.hot-dots button', r).forEach((b, k) => b.classList.toggle('on', k === HOT.i));
+      st.className = 'hot-stage leave' + (dir < 0 ? ' back' : '');
+      clearTimeout(st._t);
+      st._t = setTimeout(() => {
+        st.innerHTML = hotSlide(l[HOT.i]);
+        st.className = 'hot-stage enter' + (dir < 0 ? ' back' : '');
+      }, 230);
+    });
   }
-  let hotRailTimer;
-  function startHotRail() {
-    clearInterval(hotRailTimer);
-    hotRailTimer = setInterval(() => {
-      if (S.tab !== 'profile') return;
-      const r = $('#hot-rail'); if (!r || r.scrollWidth <= r.clientWidth + 4 || r.matches(':active')) return;
-      const step = (r.firstElementChild ? r.firstElementChild.offsetWidth : 200) + 12;
-      if (r.scrollLeft + r.clientWidth >= r.scrollWidth - 8) r.scrollTo({ left:0, behavior:'smooth' });
-      else r.scrollBy({ left:step, behavior:'smooth' });
-    }, 3200);
+  let hotTimer;
+  function startHot() {
+    clearInterval(hotTimer);
+    hotTimer = setInterval(() => {
+      if (document.hidden || shopPageOpen || Date.now() < HOT.pause || (S.tab !== 'home' && S.tab !== 'profile')) return;
+      if (!$('.hot-rot')) return;
+      hotShow(HOT.i + 1);
+    }, 3500);
   }
+  const hotRefresh = () => { $$('.hot-rot').forEach(r => { const h = r.parentElement; if (h) { const html = hotRotHtml(); if (html) r.outerHTML = html; } }); };
   function tnSpin() {
     const food = SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false);
     if (!food.length) return toast('Chưa có quán nào đang mở cửa');
@@ -405,7 +423,7 @@
       <div class="section-head" id="shops-anchor"><h2>${SECTORS[S.home.sector].head}</h2><button class="see-all" data-act="see-all">Xem tất cả ${ic('chevRight')}</button></div>
       <div class="chips" id="home-chips">${chipsHtml()}</div>
       <div class="shop-list" id="home-list">${shopListHtml()}</div>`;
-    el.scrollTop = scroll;
+    el.scrollTop = scroll; startHot();
     const q = $('#home-q');
     q.addEventListener('input', e => { S.home.q = e.target.value; $('#home-list').innerHTML = shopListHtml(); const ex = $('#tn-extra'); if (ex) ex.innerHTML = tnExtra(); });
   }
@@ -617,14 +635,14 @@
           ${LIVE ? menuItem('pushset', ic('bell'), '', 'Thông báo đơn hàng', 'Nhận tin khi đơn đổi trạng thái') : ''}
           ${LIVE ? menuItem('policy', ic('doc'), '', 'Chính sách & Điều khoản', 'Điều khoản sử dụng, bảo mật thông tin') : menuItem('settings', ic('gear'), '', 'Cài đặt', 'Ngôn ngữ, thông báo, quyền riêng tư')}
           ${menuItem('logout', ic('logout'), '', 'Đăng xuất', 'Thoát khỏi tài khoản hiện tại', 'danger')}
-        </div><div id="profile-hot">${hotCarouselHtml()}</div><div class="pad-bottom"></div>`;
+        </div><div id="profile-hot">${hotSectionHtml('hot-all')}</div><div class="pad-bottom"></div>`;
     } else {
       el.innerHTML = `
         <div class="hero" style="padding-bottom:50px"><div style="padding-top:34px"><div class="page-title" style="font-size:28px">Cá nhân</div><p class="page-sub">Đăng nhập để quản lý đơn hàng,<br>địa chỉ và ưu đãi của bạn</p></div></div>
         <div class="guest-card"><div class="guest-top"><div class="ghost">${fx.guestUser}</div>
           <div><h2>Bạn chưa đăng nhập</h2><p>Đăng nhập hoặc đăng ký để trải nghiệm đầy đủ tính năng và nhận nhiều ưu đãi hấp dẫn từ Tam Nông Ăn Gì!</p></div></div>
           <div class="guest-btns"><button class="btn primary" data-auth="login">${ic('login')}Đăng nhập</button><button class="btn outline" data-auth="register">${ic('user')}Đăng ký</button></div></div>
-        <div id="profile-hot">${hotCarouselHtml()}</div>
+        <div id="profile-hot">${hotSectionHtml('hot-all')}</div>
         <div class="group-title">Tiện ích khác</div>
         <div class="menu">
           ${menuItem('help', ic('headset'), '', 'Trung tâm hỗ trợ', 'Giải đáp thắc mắc, liên hệ chúng tôi')}
@@ -634,7 +652,7 @@
           ${LIVE ? '' : menuItem('notif', fx.bellR, 'red', 'Cài đặt thông báo', 'Quản lý thông báo và nhận ưu đãi')}
         </div><div class="pad-bottom"></div>`;
     }
-    startHotRail();
+    startHot();
   }
 
   /* ---------------- AUTH ---------------- */
@@ -721,9 +739,10 @@
       : `<button class="sp-add" data-qty="${i}" data-d="1" aria-label="Thêm món">+</button>`;
   }
   function spItem(s, i) {
-    const m = s.menu[i];
-    return `<div class="sp-item ${m[2] === false ? 'off' : ''}">${m[4] ? `<img src="${m[4]}" alt="${m[0]}" loading="lazy">` : `<div class="ph">${(m[0] || '?').trim().charAt(0).toUpperCase()}</div>`}
-      <div class="in"><b>${m[0]}</b>${m[5] ? `<em>${m[5]}</em>` : ''}<span>${money(m[1])}</span></div><div id="ctl-${i}">${spCtl(s, i)}</div></div>`;
+    const m = s.menu[i], sale = s.sale > 0 && sectorOf(s) !== 'service' ? s.sale : 0, now = sale ? Math.round(m[1] * (100 - sale) / 100) : m[1];
+    return `<div class="sp2-item ${m[2] === false ? 'off' : ''}"><div class="sp2-pic">${m[4] ? `<img src="${m[4]}" alt="${m[0]}" loading="lazy">` : SP_NOIMG}</div>
+      <div class="sp2-in"><b>${m[0]}</b>${m[5] ? `<em>${m[5]}</em>` : ''}<div class="sp2-price"><strong>${money(now)}</strong>${sale ? `<s>${money(m[1])}</s><i>-${sale}%</i>` : ''}</div></div>
+      <div class="sp2-ctl" id="ctl-${i}">${spCtl(s, i)}</div></div>`;
   }
   /* Thời trang: sản phẩm hiện dạng thẻ lớn, 2 thẻ / 1 hàng, đủ ảnh + tên + thông tin sản phẩm */
   function spProduct(s, i) {
@@ -754,34 +773,71 @@
     const m = s.menu[i];
     return `<div class="sv-card">${m[4] ? `<img src="${m[4]}" alt="${m[0]}" loading="lazy">` : ''}<div class="sv-in"><b>${m[0]}</b>${m[5] ? `<p>${m[5]}</p>` : ''}<span>${m[1] ? 'Từ ' + money(m[1]) : 'Liên hệ báo giá'}</span></div></div>`;
   }
+  const SP_NOIMG = '<svg viewBox="0 0 64 64" fill="none" stroke="#b4b9bf" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 30c0-8 7-13 14-13s14 5 14 13zM8 36h28M10 36c0 6 3 9 8 9h8c5 0 8-3 8-9"/><path d="M42 24h16l-2 26H44zM40 24h20M49 24l2-8"/></svg>';
+  const SP_I = {
+    group:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c3 .1 4.9 2.1 4.9 5"/></svg>',
+    share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="18" cy="18" r="2.6"/><path d="M8.3 10.8l7.4-3.6M8.3 13.2l7.4 3.6"/></svg>',
+    search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+    clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffc928"/><path d="M12 6.5V12l3.5 2" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/></svg>',
+    check:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#12a150"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>',
+  };
+  /* Dải "Ưu đãi" của quán: giảm giá quán, freeship, giảm thêm đặt online, voucher đang chạy */
+  function spPromos(s) {
+    const a = [], sec = sectorOf(s); if (sec === 'service') return a;
+    if (s.sale) a.push(`Giảm ${s.sale}% toàn thực đơn`);
+    if (s.freeShipAll) a.push('Miễn phí ship mọi đơn'); else if (s.ship) a.push(`Freeship cho đơn từ ${s.ship}`);
+    if (PLAT.pct > 0) a.push(`Giảm thêm ${PLAT.pct}% cho đơn đặt online`);
+    PROMOS.slice(0, 4).forEach(p => { try { a.push(promoLabel(p) + (+p.min > 0 ? ' cho đơn từ ' + money(+p.min) : '')); } catch (e) { /* bỏ qua voucher lỗi */ } });
+    return a;
+  }
+  function spGroupsHtml(s) {
+    const groups = menuGroups(s), names = [...groups.keys()], sec = sectorOf(s), q = norm(String(SP.q || '').trim());
+    if (SP.cat !== 'Tất cả' && !groups.has(SP.cat)) SP.cat = 'Tất cả';
+    const match = i => !q || norm(s.menu[i][0] + ' ' + s.menu[i][5]).includes(q);
+    const out = names.filter(n => SP.cat === 'Tất cả' || n === SP.cat).map(n => {
+      const ids = groups.get(n).filter(match); if (!ids.length) return '';
+      return sec === 'fashion' ? `<div class="pg-wrap"><h3 class="pg-h">${n}<small>(${ids.length})</small></h3><div class="pg-grid">${ids.map(i => spProduct(s, i)).join('')}</div></div>`
+        : sec === 'service' ? `<div class="sp-group"><h3>${n}<small>(${ids.length})</small></h3>${ids.map(i => spService(s, i)).join('')}</div>`
+        : `<section class="sp2-sec"><h3>${n}</h3>${ids.map(i => spItem(s, i)).join('')}</section>`;
+    }).join('');
+    return out || `<div class="empty">${q ? 'Không tìm thấy món phù hợp' : sec === 'service' ? 'Chưa cập nhật dịch vụ' : sec === 'fashion' ? 'Chưa cập nhật sản phẩm' : 'Quán chưa cập nhật thực đơn'}</div>`;
+  }
   function renderShopPage() {
     const s = SHOPS.find(x => x.id === SP.id), page = $('#shop-page'); if (!s) return;
-    const sc = page.scrollTop, groups = menuGroups(s), names = [...groups.keys()], sec = sectorOf(s);
+    const sc = page.scrollTop, groups = menuGroups(s), names = [...groups.keys()], sec = sectorOf(s), d = s._d || {};
     if (SP.cat !== 'Tất cả' && !groups.has(SP.cat)) SP.cat = 'Tất cả';
-    const shown = names.filter(n => SP.cat === 'Tất cả' || n === SP.cat);
     const tel = String(s.phone || '').replace(/\D/g, '');
-    const rowHtml = n => sec === 'fashion' ? `<div class="pg-wrap"><h3 class="pg-h">${n}<small>(${groups.get(n).length})</small></h3><div class="pg-grid">${groups.get(n).map(i => spProduct(s, i)).join('')}</div></div>`
-      : sec === 'service' ? `<div class="sp-group"><h3>${n}<small>(${groups.get(n).length})</small></h3>${groups.get(n).map(i => spService(s, i)).join('')}</div>`
-      : `<div class="sp-group"><h3>${n}<small>(${groups.get(n).length})</small></h3>${groups.get(n).map(i => spItem(s, i)).join('')}</div>`;
-    page.innerHTML = `<div class="sp-top"><button class="sp-back" data-shopback>${ic('chevLeft')}Quay lại</button>
-        <button class="heart ${isFav(s.id) ? 'on' : ''}" data-heart="${s.id}" data-sheet="1" aria-label="Yêu thích">${ic('heart')}</button></div>
-      <div class="sp-card"><div class="sp-head"><img class="sp-logo" src="${s.img}" alt="${s.name}">
-        <div><h2>${s.name}${s.open === false ? `<span class="sp-closed">${closedNote(s)}</span>` : ''}</h2><div class="sp-cat">${s.cat}</div>${hoursNote(s)}
-        ${s.address ? `<div class="sp-addr">${ic('mapPin')}<span>${s.address}</span></div>` : ''}</div></div>
-        <div class="sp-info">${s.rate ? `<div class="sp-rate">${fx.star}Đánh giá (${s.rate.toFixed(1)}${s.rc ? ' · ' + s.rc + ' lượt' : ''})</div>` : ''}
-          ${shopMeta(s)}${shopTags(s)}${s.desc ? `<p class="sp-desc">${s.desc}</p>` : ''}</div></div>
-      ${names.length > 1 ? `<div class="sp-chips">${['Tất cả', ...names].map(n => `<button class="${n === SP.cat ? 'on' : ''}" data-spcat="${n}">${n}</button>`).join('')}</div>` : ''}
-      ${shown.map(rowHtml).join('') || `<div class="empty">${sec === 'service' ? 'Chưa cập nhật dịch vụ' : sec === 'fashion' ? 'Chưa cập nhật sản phẩm' : 'Quán chưa cập nhật thực đơn'}</div>`}
+    const tabs = names.length > 1 ? ['Tất cả', ...names] : names;
+    const hrs = d.autoHours && d.openAt && d.closeAt ? `Hôm nay: ${d.openAt} - ${d.closeAt}` : 'Mở cửa cả ngày';
+    const promos = spPromos(s);
+    page.innerHTML = `<div class="sp2-bar"><button class="sp2-back" data-shopback aria-label="Quay lại">${ic('chevLeft')}</button><span class="sp2-title">${s.name}</span>
+        <button class="heart sp2-heart ${isFav(s.id) ? 'on' : ''}" data-heart="${s.id}" data-sheet="1" aria-label="Yêu thích">${ic('heart')}</button></div>
+      <div class="sp2-cover"><img class="sp2-bg" src="${s.img}" alt=""><img class="sp2-thumb" src="${s.img}" alt="${s.name}"></div>
+      <div class="sp2-info">
+        <h2>${s.name}</h2>
+        <div class="sp2-rate"><span class="sp2-star">★</span><b>${s.rate ? s.rate.toFixed(1) : 'Mới'}</b><span class="sp2-rc">(${s.rc || 0})</span>${sec !== 'service' ? `<i class="sp2-dot">·</i><span class="sp2-eta">${ic('clock')}${s.eta} chuẩn bị món</span>` : ''}</div>
+        <div class="sp2-hours"><span class="sp2-ico">${SP_I.clock}</span><span>${hrs}</span><span class="sp2-open ${s.open === false ? 'off' : 'on'}">${s.open === false ? closedNote(s) : `${SP_I.check}Đang mở cửa`}</span></div>
+        ${s.address ? `<div class="sp2-addr">${ic('mapPin')}<span>${s.address}</span></div>` : ''}
+        ${promos.length ? `<div class="sp2-promos">${promos.map(t => `<span class="sp2-pchip"><b>Ưu đãi</b><i>${t}</i></span>`).join('')}</div>` : ''}
+        <div class="sp2-acts"><button data-spgroup>${SP_I.group}Đặt nhóm</button><button data-spshare>${SP_I.share}Chia sẻ</button></div>
+        ${s.desc ? `<p class="sp2-desc">${s.desc}</p>` : ''}
+      </div>
+      <div class="sp2-sticky"><div class="sp2-tabs">${tabs.map(n => `<button class="${(n === SP.cat) || (tabs.length === 1) ? 'on' : ''}" data-spcat="${n}">${n}</button>`).join('')}<button class="sp2-sbtn" data-spsearch aria-label="Tìm món">${SP_I.search}</button></div>
+        <div class="sp2-search" ${SP.sq ? '' : 'hidden'}><input id="sp-q" type="search" placeholder="Tìm món trong quán…" value="${esc(SP.q || '')}" autocomplete="off"></div></div>
+      <div id="sp-groups">${spGroupsHtml(s)}</div>
       <div class="sp-spacer"></div>
       ${sec === 'service' ? (tel ? `<div class="sv-bar"><a class="sv-call" href="tel:${tel}">📞 Gọi ngay</a><a class="sv-zalo" href="https://zalo.me/${tel}" target="_blank" rel="noopener">💬 Nhắn Zalo</a></div>` : '')
         : `<button class="sp-cartbar empty" id="cart-bar" data-cart><span id="cb-l">Giỏ hàng (0 ${sec === 'fashion' ? 'sản phẩm' : 'món'})</span><b id="cb-t">0đ</b></button>`}`;
+    page.classList.toggle('scrolled', sc > 170);
     page.scrollTop = sc;
+    const qi = $('#sp-q', page);
+    if (qi) qi.addEventListener('input', e => { SP.q = e.target.value; const g = $('#sp-groups'); if (g) g.innerHTML = spGroupsHtml(s); });
     updateCartUI();
   }
   function openShopPage(s) {
     if (!s || !s.menu) return;
     if (LIVE && sectorOf(s) !== 'service' && CART.shop !== s.id) { CART.shop = s.id; CART.q = {}; CART.promo = ''; CART.shipPromo = ''; }
-    SP.id = s.id; SP.cat = 'Tất cả';
+    SP.id = s.id; SP.cat = 'Tất cả'; SP.q = ''; SP.sq = false;
     const page = $('#shop-page');
     renderShopPage(); page.classList.add('open'); page.scrollTop = 0;
     if (!shopPageOpen) history.pushState({ sp:1 }, '', '#shop');
@@ -1595,10 +1651,11 @@
         openSig = SHOPS.map(x => x.open ? 1 : 0).join('');
         if (S.tab === 'home' && $('#banner') && S.home.sector === 'food') $('#banner').innerHTML = bannerInner();
         if (shopPageOpen) { if (SHOPS.some(x => x.id === SP.id)) renderShopPage(); }
+        if (S.tab === 'home' && $('#tn-extra')) $('#tn-extra').innerHTML = tnExtra();
         if (S.tab === 'home' && $('#home-list')) $('#home-list').innerHTML = shopListHtml();
         else if (S.tab === 'favorites' && $('#fav-body')) { $('#fav-body').innerHTML = favBody(); bindFavSort(); }
         else if (S.tab === 'orders') rebuildOrders();
-        else if (S.tab === 'profile' && $('#profile-hot')) { $('#profile-hot').innerHTML = hotCarouselHtml(); }
+        else if (S.tab === 'profile' && $('#profile-hot')) { $('#profile-hot').innerHTML = hotSectionHtml('hot-all'); }
       };
       FB.watchShops((l, err) => {
         if (err) return toast('Không tải được danh sách quán');
@@ -1634,6 +1691,33 @@
 
   /* Tải sẵn lớp dữ liệu Firebase ngay từ đầu (song song với việc vẽ trang) thay vì đợi vẽ xong mới tải */
   const fbReady = import('./fb.js?v=20261107a'); fbReady.catch(() => {});
+  /* ---- Quán hot: chấm tròn, vuốt, tạm dừng khi chạm; Trang quán: tìm món, chia sẻ, thanh tiêu đề ---- */
+  document.addEventListener('click', e => {
+    const g = e.target.closest && e.target.closest('[data-hotgo]');
+    if (g) { HOT.pause = Date.now() + 6000; hotShow(+g.dataset.hotgo); }
+  });
+  let hotX = null;
+  document.addEventListener('touchstart', e => { if (e.target.closest && e.target.closest('.hot-rot')) { hotX = e.touches[0].clientX; HOT.pause = Date.now() + 6000; } else hotX = null; }, { passive:true });
+  document.addEventListener('touchend', e => {
+    if (hotX == null) return; const dx = e.changedTouches[0].clientX - hotX; hotX = null;
+    if (Math.abs(dx) > 40) hotShow(HOT.i + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+  }, { passive:true });
+  const shopUrl = s => { const sl = slugOf(s._d && s._d.name), dup = !sl || SHOPS.some(x => x.id !== s.id && slugOf(x._d && x._d.name) === sl); return location.origin + location.pathname.replace(/[^/]*$/, '') + '?quan=' + encodeURIComponent(dup ? s.id : sl); };
+  document.addEventListener('click', e => {
+    const t = e.target.closest && e.target.closest('[data-spshare],[data-spgroup],[data-spsearch]'); if (!t) return;
+    const s = SHOPS.find(x => x.id === SP.id); if (!s) return;
+    if (t.hasAttribute('data-spsearch')) {
+      SP.sq = !SP.sq; const box = $('#shop-page .sp2-search'), qi = $('#sp-q');
+      if (box) box.hidden = !SP.sq;
+      if (SP.sq) { if (qi) qi.focus(); } else if (SP.q) { SP.q = ''; if (qi) qi.value = ''; const gr = $('#sp-groups'); if (gr) gr.innerHTML = spGroupsHtml(s); }
+      return;
+    }
+    const name = (s._d && s._d.name) || 'quán này', url = shopUrl(s), grp = t.hasAttribute('data-spgroup');
+    const text = grp ? `Cùng đặt món nhóm tại ${name} nhé! Vào chọn món chung với mình:` : `Quán ${name} – đặt món online, giao tận nơi tại Tam Nông:`;
+    if (navigator.share) { navigator.share({ title:name, text, url }).catch(() => {}); return; }
+    (navigator.clipboard ? navigator.clipboard.writeText(text + ' ' + url) : Promise.reject()).then(() => toast('Đã sao chép link quán, gửi cho bạn bè nhé'), () => { try { prompt('Sao chép link dưới đây:', url); } catch (er) { /* bỏ qua */ } });
+  });
+  (() => { const pg = $('#shop-page'); if (pg) pg.addEventListener('scroll', () => pg.classList.toggle('scrolled', pg.scrollTop > 170), { passive:true }); })();
   function boot() {
     const first = location.hash.slice(1);
     go(renderers[first] ? first : 'home', false);

@@ -942,3 +942,102 @@ body.tab-home .slot{display:flex}
 @keyframes tnFlame{0%,100%{transform:scale(1) rotate(-4deg)}50%{transform:scale(1.18) rotate(5deg)}}
 @keyframes tnShine{to{background-position:-200% 0}}
 @keyframes tnPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ===== Thẻ quán hot xoay vòng (1 quán + 3 món, tự chuyển 3,5 giây) ===== */
+.hot-rot{margin:4px 14px 10px}
+.hot-stage{will-change:transform,opacity}
+.hot-stage.leave{opacity:0;transform:translateX(-28px);transition:opacity .23s ease,transform .23s ease}
+.hot-stage.leave.back{transform:translateX(28px)}
+.hot-stage.enter{animation:hotIn .38s cubic-bezier(.2,.8,.2,1) both}
+.hot-stage.enter.back{animation-name:hotInBack}
+@keyframes hotIn{from{opacity:0;transform:translateX(34px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes hotInBack{from{opacity:0;transform:translateX(-34px) scale(.98)}to{opacity:1;transform:none}}
+.hot-card{position:relative;background:#fff;border-radius:16px;padding:12px;overflow:hidden;cursor:pointer;box-shadow:0 2px 10px rgba(16,19,26,.1)}
+.hot-card:active{transform:scale(.985)}
+.hc-top{display:flex;gap:12px;align-items:center}
+.hc-img{width:104px;height:104px;border-radius:12px;object-fit:cover;flex:none;background:#f0f0f0}
+.hc-info{min-width:0;flex:1}
+.hc-info h5{font-size:17px;line-height:1.25;color:#222;padding-right:30px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hc-info p{color:#888;font-size:14px;margin-top:4px}
+.hc-dishes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.hc-dish{min-width:0}
+.hc-dish img,.hc-dish .ph{display:block;width:100%;aspect-ratio:1/1;border-radius:10px;object-fit:cover;background:#f0f0f0}
+.hc-dish .ph{display:grid;place-items:center;font-weight:700;font-size:24px;color:#9aa1ab}
+.hc-dish b{display:block;font-size:13px;font-weight:600;color:#333;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hc-dish span{display:block;font-size:14px;font-weight:700;color:#e5322d;margin-top:2px}
+.hot-dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.hot-dots button{width:7px;height:7px;border-radius:4px;background:#d6d9de;transition:width .3s ease,background .3s ease;padding:0}
+.hot-dots button.on{width:20px;background:var(--orange)}
+@media (prefers-reduced-motion:reduce){.hot-stage.enter{animation:none}.hot-stage.leave{transition:none}}
+
+/* ===== Trang cửa hàng (giao diện mới) ===== */
+#shop-page{background:#fff}
+.sp2-bar{position:sticky;top:0;z-index:8;height:calc(58px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 12px 0;display:flex;align-items:center;gap:10px;margin-bottom:calc(-58px - env(safe-area-inset-top,0px));transition:background .2s,box-shadow .2s}
+.sp2-back,.sp2-heart{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;transition:background .2s,color .2s}
+.sp2-back{background:rgba(55,55,55,.78);color:#fff}
+.sp2-back svg{width:24px;height:24px}
+.sp2-heart{position:static;margin-left:auto;background:rgba(255,255,255,.92)}
+.sp2-heart svg{width:24px;height:24px}
+.sp2-title{flex:1;min-width:0;font-weight:700;font-size:16px;color:#222;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#shop-page.scrolled .sp2-bar{background:#fff;box-shadow:0 1px 8px rgba(0,0,0,.1)}
+#shop-page.scrolled .sp2-back{background:transparent;color:#222}
+#shop-page.scrolled .sp2-heart{background:transparent}
+#shop-page.scrolled .sp2-title{opacity:1;transform:none}
+.sp2-cover{position:relative;height:230px;background:#eee}
+.sp2-bg{display:block;width:100%;height:100%;object-fit:cover}
+.sp2-thumb{position:absolute;right:14px;bottom:-40px;width:112px;height:112px;border-radius:18px;border:3px solid #fff;object-fit:cover;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.18);z-index:2}
+.sp2-info{padding:20px 14px 14px}
+.sp2-info h2{font-family:var(--font-h);font-size:24px;line-height:1.25;font-weight:700;color:#1b1f24;padding-right:128px;margin-bottom:10px}
+.sp2-rate{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:15px;color:#555}
+.sp2-star{color:#f6b21b;font-size:22px;line-height:1}
+.sp2-rate b{font-size:18px;color:#1b1f24}
+.sp2-rc{color:#9aa1ab}
+.sp2-dot{font-style:normal;color:#c3c7cd}
+.sp2-eta{display:inline-flex;align-items:center;gap:5px}
+.sp2-eta svg{width:18px;height:18px;color:#9aa1ab}
+.sp2-hours{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:15px;color:#555}
+.sp2-ico svg{display:block;width:22px;height:22px}
+.sp2-open{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:20px;font-weight:600;font-size:14px;white-space:nowrap}
+.sp2-open svg{width:18px;height:18px}
+.sp2-open.on{background:#f1f4f2;color:#12a150}
+.sp2-open.off{background:var(--red-l);color:var(--red)}
+.sp2-addr{display:flex;gap:6px;align-items:flex-start;color:#6b7280;font-size:13.5px;margin-top:8px}
+.sp2-addr svg{width:16px;height:16px;flex:none;margin-top:2px;color:var(--green)}
+.sp2-promos{display:flex;gap:10px;overflow-x:auto;margin:14px -14px 0;padding:0 14px;scrollbar-width:none}
+.sp2-promos::-webkit-scrollbar{display:none}
+.sp2-pchip{display:inline-flex;flex:none;align-items:stretch;border-radius:10px;overflow:hidden;background:#eef8f1}
+.sp2-pchip b{display:flex;align-items:center;padding:10px 14px;background:linear-gradient(180deg,#ffd45a,#ffbf1f);color:#8a4b00;font-size:15px;font-weight:700}
+.sp2-pchip i{display:flex;align-items:center;padding:0 14px;font-style:normal;font-size:15px;color:#222;white-space:nowrap}
+.sp2-acts{display:flex;gap:12px;margin-top:14px}
+.sp2-acts button{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border:1.5px solid #dcdfe3;border-radius:24px;background:#fff;font-weight:600;font-size:16px;color:#222;transition:transform .15s,background .15s}
+.sp2-acts button:active{transform:scale(.96);background:#fafafa}
+.sp2-acts svg{width:22px;height:22px}
+.sp2-desc{color:#6b7280;font-size:13.5px;line-height:1.5;margin-top:12px}
+.sp2-sticky{position:sticky;top:calc(58px + env(safe-area-inset-top,0px));z-index:7;background:#fff;border-top:8px solid #f3f3f3}
+.sp2-tabs{display:flex;align-items:center;padding:0 14px;overflow-x:auto;border-bottom:1px solid #ececec;scrollbar-width:none}
+.sp2-tabs::-webkit-scrollbar{display:none}
+.sp2-tabs button{flex:none;height:52px;padding:0 14px;font-weight:700;font-size:15px;text-transform:uppercase;color:#7a7f87;border-bottom:3px solid transparent;margin-bottom:-1px}
+.sp2-tabs button.on{color:#1b1f24;border-bottom-color:var(--yellow)}
+.sp2-tabs .sp2-sbtn{margin:0 0 0 auto;position:sticky;right:0;width:46px;background:#fff;border-bottom:0;display:grid;place-items:center;color:#333;padding:0}
+.sp2-sbtn svg{width:26px;height:26px}
+.sp2-search{padding:8px 14px 10px}
+.sp2-search input{width:100%;height:42px;border-radius:21px;border:1.5px solid #e1e4e8;background:#f6f7f8;padding:0 16px;font-size:15px;outline:none}
+.sp2-search input:focus{border-color:var(--yellow);background:#fff}
+.sp2-sec{padding:18px 14px 0}
+.sp2-sec h3{font-family:var(--font-h);font-size:22px;font-weight:700;text-transform:uppercase;color:#1b1f24;margin-bottom:16px}
+.sp2-item{position:relative;display:flex;gap:16px;margin-bottom:20px;animation:rise .4s both}
+.sp2-pic{width:132px;height:132px;flex:none;border-radius:16px;background:#f2f2f2;display:grid;place-items:center;overflow:hidden}
+.sp2-pic img{width:100%;height:100%;object-fit:cover}
+.sp2-pic svg{width:58px;height:58px}
+.sp2-in{flex:1;min-width:0;display:flex;flex-direction:column}
+.sp2-in b{font-size:17px;font-weight:600;line-height:1.3;color:#1b1f24}
+.sp2-in em{font-style:normal;color:#7a7f87;font-size:14px;line-height:1.35;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sp2-price{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:8px;padding-right:50px}
+.sp2-price strong{font-size:19px;font-weight:700;color:#ff4d1a}
+.sp2-price s{font-size:15px;color:#8b9097}
+.sp2-price i{font-style:normal;background:#2fb344;color:#fff;border-radius:8px;padding:3px 9px;font-size:14px;font-weight:600}
+.sp2-ctl{position:absolute;right:0;bottom:0}
+.sp2-item .sp-add{width:42px;height:42px;border-radius:8px;background:var(--yellow);color:#fff;font-size:28px;box-shadow:none}
+.sp2-item .qty button{background:#fff3c4;color:#8a5a00}
+.sp2-item.off .sp2-in b,.sp2-item.off .sp2-in em,.sp2-item.off .sp2-price,.sp2-item.off .sp2-pic{opacity:.45}
+@media (max-width:360px){.sp2-pic{width:110px;height:110px}.sp2-info h2{font-size:21px}}
