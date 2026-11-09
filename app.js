@@ -630,7 +630,6 @@
         </div>
         <div class="group-title">Tài khoản &amp; Tiện ích</div>
         <div class="menu">
-          ${menuItem('favs', ic('heart'), '', 'Quán yêu thích', 'Các quán bạn đã lưu')}
           ${menuItem('account', fx.userF, '', 'Thông tin tài khoản', 'Xem và chỉnh sửa thông tin cá nhân')}
           ${menuItem('address', fx.pinF, '', 'Địa chỉ đã lưu', 'Quản lý các địa chỉ giao hàng')}
           ${menuItem('payment', fx.walletF, '', 'Phương thức thanh toán', LIVE ? 'Tiền mặt, Chuyển khoản' : 'Thẻ ngân hàng, Ví điện tử, Tiền mặt')}
@@ -638,6 +637,8 @@
         </div>
         <div class="group-title">Hỗ trợ &amp; Cài đặt</div>
         <div class="menu">
+          ${menuItem('reg-seller', ic('shop'), '', 'Đăng ký bán hàng', 'Mở quán của bạn trên Tam Nông Ăn Gì')}
+          ${menuItem('reg-driver', ic('truck'), '', 'Đăng ký tài xế', 'Trở thành tài xế giao hàng')}
           ${menuItem('help', ic('headset'), '', 'Trung tâm hỗ trợ', 'Giải đáp thắc mắc, liên hệ chúng tôi')}
           ${LIVE ? menuItem('pushset', ic('bell'), '', 'Thông báo đơn hàng', 'Nhận tin khi đơn đổi trạng thái') : ''}
           ${LIVE ? menuItem('policy', ic('doc'), '', 'Chính sách & Điều khoản', 'Điều khoản sử dụng, bảo mật thông tin') : menuItem('settings', ic('gear'), '', 'Cài đặt', 'Ngôn ngữ, thông báo, quyền riêng tư')}
@@ -652,6 +653,8 @@
         <div id="profile-hot">${hotSectionHtml('hot-all')}</div>
         <div class="group-title">Tiện ích khác</div>
         <div class="menu">
+          ${menuItem('reg-seller', ic('shop'), '', 'Đăng ký bán hàng', 'Mở quán của bạn trên Tam Nông Ăn Gì')}
+          ${menuItem('reg-driver', ic('truck'), '', 'Đăng ký tài xế', 'Trở thành tài xế giao hàng')}
           ${menuItem('help', ic('headset'), '', 'Trung tâm hỗ trợ', 'Giải đáp thắc mắc, liên hệ chúng tôi')}
           ${menuItem('policy', fx.gearBlue, 'blue', 'Chính sách &amp; Điều khoản', 'Xem các chính sách, điều khoản sử dụng')}
           ${LIVE ? '' : menuItem('lang', fx.globeP, 'purple', 'Ngôn ngữ', 'Lựa chọn ngôn ngữ ứng dụng')}
@@ -1553,6 +1556,19 @@
   function menuAction(k) {
     if (k === 'favs') return go('favorites');
     if (k === 'pushset') return pushSheet();
+    if (k === 'reg-seller' || k === 'reg-driver') {
+      const seller = k === 'reg-seller', zl = zaloLink();
+      const who = (S.user && (S.user.name || S.user.phone)) ? ` Tên: ${S.user.name || '...'}${S.user.phone ? ' - SĐT: ' + S.user.phone : ''}.` : '';
+      const msg = seller
+        ? `Chào Admin Tam Nông Ăn Gì, mình muốn đăng ký BÁN HÀNG trên web.${who} Tên quán: ... Địa chỉ quán: ... Món bán chính: ... Nhờ Admin hướng dẫn giúp mình. Cảm ơn!`
+        : `Chào Admin Tam Nông Ăn Gì, mình muốn đăng ký làm TÀI XẾ giao hàng.${who} Họ tên: ... Số điện thoại: ... Khu vực chạy: ... Loại xe và biển số: ... Nhờ Admin hướng dẫn giúp mình. Cảm ơn!`;
+      if (!zl) return openSheet(`<h3>${seller ? 'Đăng ký bán hàng' : 'Đăng ký tài xế'}</h3><p style="margin:8px 0 4px;color:var(--ink-2);line-height:1.5">Vui lòng liên hệ Admin để đăng ký.</p>${contactOpts()}`);
+      try { navigator.clipboard.writeText(msg).catch(() => {}); } catch (e) {}
+      toast('Đã sao chép lời nhắn. Dán vào Zalo rồi gửi cho Admin nhé!');
+      const u = zl + (zl.includes('?') ? '&' : '?') + 'text=' + encodeURIComponent(msg);
+      window.open(u, '_blank', 'noopener');
+      return;
+    }
     if (k.startsWith('open-')) { location.href = 'quanly.html'; return; }
     if (k === 'logout') {
       return openSheet(`<h3>Đăng xuất?</h3><div class="sub">Bạn có chắc muốn thoát khỏi tài khoản hiện tại?</div>
