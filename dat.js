@@ -5,9 +5,9 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, doc, getDoc, addDoc, updateDoc, collection, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=20261023a';
-import { UPLOAD_URL } from './upload-config.js?v=20261023a';
-import { isOpenNow } from './hours.js?v=20261023a';
+import { firebaseConfig } from './firebase-config.js?v=20261109e';
+import { UPLOAD_URL } from './upload-config.js?v=20261109e';
+import { isOpenNow } from './hours.js?v=20261109e';
 
 const $ = s => document.querySelector(s);
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));

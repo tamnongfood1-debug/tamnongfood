@@ -12,7 +12,7 @@
  */
 
 // ===================== CẤU HÌNH =====================
-const FOLDER_ID = '';   /* DÁN ID thư mục Drive mới của Tam Nông (xem HUONG-DAN.md) */   // thư mục Drive chứa ảnh
+const FOLDER_ID = '1xyQ5lkRU5u9GyfLFnq2GW_N9WXDhuzWR';   /* DÁN ID thư mục Drive mới của Tam Nông (xem HUONG-DAN.md) */   // thư mục Drive chứa ảnh
 const FIREBASE_PROJECT = 'tamnongfood-2e8a8';
 const FIREBASE_API_KEY = 'AIzaSyAECDJ5Nxsom9JAnXSEQ-6SyhL9d4j1IDo';
 const MAX_BYTES = 3 * 1024 * 1024;

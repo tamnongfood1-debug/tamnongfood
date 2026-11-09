@@ -1162,7 +1162,7 @@
   /* ----- bản đồ chọn điểm: kéo bản đồ để đưa ghim đỏ vào đúng chỗ ----- */
   /* ----- Bản đồ: ưu tiên Goong (khóa trong goong-config.js); chưa có khóa hoặc Goong lỗi thì dùng Leaflet + OpenStreetMap/Esri ----- */
   let GOONG = { map:'', api:'' }, GOONG_ERR = '';
-  import('./goong-config.js?v=20261023a').then(m => { GOONG = { map:String(m.GOONG_MAP_KEY || '').trim(), api:String(m.GOONG_API_KEY || '').trim() }; }).catch(() => {});
+  import('./goong-config.js?v=20261109e').then(m => { GOONG = { map:String(m.GOONG_MAP_KEY || '').trim(), api:String(m.GOONG_API_KEY || '').trim() }; }).catch(() => {});
   const LF = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.', GJ = 'https://cdn.jsdelivr.net/npm/@goongmaps/goong-js@1.0.9/dist/goong-js.';
   const loadAsset = (tag, attrs) => new Promise((ok, no) => { const e = document.createElement(tag); Object.assign(e, attrs); e.onload = ok; e.onerror = () => no(new Error(tag)); document.head.appendChild(e); });
   const loadLeaflet = () => window.L ? Promise.resolve() : Promise.all([loadAsset('link', { rel:'stylesheet', href:LF + 'css' }), loadAsset('script', { src:LF + 'js' })]);
@@ -1426,7 +1426,7 @@
     if (!act) return;
     const a = act.dataset.act;
     if (a === 'forgot' && LIVE) { e.preventDefault(); return openSheet(`<h3>Quên mật khẩu?</h3><div class="sub">Hãy liên hệ Admin để được đặt lại mật khẩu. Vui lòng cung cấp số điện thoại đã đăng ký.</div>${contactOpts()}`); }
-    if (a === 'forgot' && LIVE) { e.preventDefault(); const zl = zaloLink() || 'https://zalo.me/0000000000', hot = telHot(); return openSheet(`<h3>Quên mật khẩu?</h3><div class="sub">Để bảo mật, mật khẩu được Admin đặt lại trực tiếp. Hãy nhắn Zalo (kèm số điện thoại đã đăng ký) để được cấp mật khẩu mới, sau đó đăng nhập và dùng ngay.</div><a class="sheet-btn" style="display:block;text-align:center" href="${esc(zl)}" target="_blank" rel="noopener">Nhắn Zalo cho Admin</a>${hot ? `<a class="sheet-btn" style="display:block;text-align:center;margin-top:8px;background:var(--chip);color:var(--ink)" href="tel:${esc(hot)}">Gọi ${esc(CONTACT.hotline)}</a>` : ''}`); }
+    if (a === 'forgot' && LIVE) { e.preventDefault(); const zl = zaloLink(), hot = telHot(); return openSheet(`<h3>Quên mật khẩu?</h3><div class="sub">Để bảo mật, mật khẩu được Admin đặt lại trực tiếp. Hãy nhắn Zalo (kèm số điện thoại đã đăng ký) để được cấp mật khẩu mới, sau đó đăng nhập và dùng ngay.</div>${zl ? `<a class="sheet-btn" style="display:block;text-align:center" href="${esc(zl)}" target="_blank" rel="noopener">Nhắn Zalo cho Admin</a>` : (hot ? '' : '<div class="sub">Vui lòng liên hệ trực tiếp quản trị viên để được cấp lại mật khẩu.</div>')}${hot ? `<a class="sheet-btn" style="display:block;text-align:center;margin-top:8px;background:var(--chip);color:var(--ink)" href="tel:${esc(hot)}">Gọi ${esc(CONTACT.hotline)}</a>` : ''}`); }
     if (a === 'forgot') { e.preventDefault(); return openSheet(`<h3>Quên mật khẩu?</h3><div class="sub">Nhập số điện thoại để nhận mã đặt lại mật khẩu.</div><div class="sheet-input">${fx.phoneF.replace('<svg','<svg width="24" height="24"')}<input type="tel" placeholder="Số điện thoại" inputmode="numeric"></div><button class="sheet-btn" data-sheetmsg="Đã gửi mã xác nhận (demo)">Gửi mã xác nhận</button>`); }
     if (a === 'terms' || a === 'privacy') { e.preventDefault(); return policySheet(a); }
     if (a === 'area') return openSheet(`<h3>Chọn khu vực giao hàng</h3>${AREAS.map(x => `<button class="opt ${x === S.area ? 'sel' : ''}" data-setarea="${x}">${ic('mapPin')}${x}${x === S.area ? `<span class="tick">${ic('check')}</span>` : ''}</button>`).join('')}`);
@@ -1674,6 +1674,7 @@
       FB.watchSettings(c => { { const m = c.maintenanceOn === true; const msg = String(c.maintenanceMsg || '').trim().slice(0, 300); if (m !== MAINT.on || msg !== MAINT.msg) { MAINT.on = m; MAINT.msg = msg; renderMaintBar(); const sh = $('#sheet'); if (sh && !sh.hidden && sh.querySelector('.co')) checkoutSheet(); } }
         ['base', 'baseKm', 'perKm', 'road'].forEach(k => { const v = Number(c['ship' + k[0].toUpperCase() + k.slice(1)]); if (v > 0) SHIPCFG[k] = v; });
         [['w2', 'shipW2'], ['w3', 'shipW3'], ['errand', 'errandFee']].forEach(([k, f]) => { if (c[f] != null && c[f] !== '' && Number(c[f]) >= 0) SVCCFG[k] = Number(c[f]); }); CONTACT = { ...CONTACT, ...Object.fromEntries(Object.entries(c).filter(([, v]) => v)) };
+        { const zf = document.getElementById('zalo-fab'); if (zf) { const u = zaloLink(); if (u) { zf.href = u; zf.style.display = ''; } else zf.style.display = 'none'; } }   /* nút Zalo chỉ hiện khi Admin đã nhập Zalo ở mục Liên hệ */
         const bin = String(c.bankBin || '').replace(/\D/g, ''), acc = String(c.bankAccount || '').replace(/\s/g, '');
         const pp = Number(c.platformPct); const np = pp > 0 && pp <= 50 ? pp : 0;
         if (np !== PLAT.pct) { PLAT.pct = np; if (shopsLoaded) applyShops(); }
@@ -1697,7 +1698,7 @@
   }
 
   /* Tải sẵn lớp dữ liệu Firebase ngay từ đầu (song song với việc vẽ trang) thay vì đợi vẽ xong mới tải */
-  const fbReady = import('./fb.js?v=20261107a'); fbReady.catch(() => {});
+  const fbReady = import('./fb.js?v=20261109e'); fbReady.catch(() => {});
   /* ---- Quán hot: chấm tròn, vuốt, tạm dừng khi chạm; Trang quán: tìm món, chia sẻ, thanh tiêu đề ---- */
   document.addEventListener('click', e => {
     const g = e.target.closest && e.target.closest('[data-hotgo]');
@@ -1731,7 +1732,7 @@
     history.replaceState(null, '', '#' + S.tab);
     startSlider();
   }
-  import('./firebase-config.js?v=20261023a')
+  import('./firebase-config.js?v=20261109e')
     .then(m => { LIVE = !!m.firebaseConfig.apiKey && !/^(DAN_|YOUR_)/.test(m.firebaseConfig.apiKey); })
     .catch(() => {})
     .then(() => { if (LIVE) prepareLive(); boot(); if (LIVE) connectLive(); });

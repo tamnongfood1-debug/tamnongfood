@@ -27,20 +27,20 @@ messaging.onBackgroundMessage(payload => {
   const body = n.body || d.body || '';
   return self.registration.showNotification(title, {
     body: body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: new URL('icon-192.png', self.registration.scope).href,
+    badge: new URL('icon-192.png', self.registration.scope).href,
     tag: d.tag || 'order-update',
     renotify: true,
     requireInteraction: true,
     vibrate: [200, 100, 200],
-    data: { url: d.url || '/#orders' }
+    data: { url: d.url || (self.registration.scope + '#orders') }
   });
 });
 
 /* Bấm vào thông báo: mở / chuyển tới trang đơn hàng */
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || '/#orders';
+  const url = (e.notification.data && e.notification.data.url) || (self.registration.scope + '#orders');
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const c of all) {

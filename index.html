@@ -9,8 +9,8 @@
   <meta name="keywords" content="Tam Nông Ăn Gì, Tam Nong An Gi, đặt đồ ăn Tam Nông, giao đồ ăn Tam Nông, quán ăn Tam Nông, ăn gì ở Tam Nông, Tam Nông Phú Thọ">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="https://tamnongangi.com/">
-  <link rel="icon" type="image/png" href="favicon.png?v=20261109">
-  <link rel="apple-touch-icon" href="icon-192.png?v=20261109">
+  <link rel="icon" type="image/png" href="favicon.png?v=20261109e">
+  <link rel="apple-touch-icon" href="icon-192.png?v=20261109e">
   <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,13 +23,13 @@
   <meta property="og:title" content="Tam Nông Ăn Gì? – Đặt đồ ăn online, giao tận nơi">
   <meta property="og:description" content="Đặt món dễ dàng, ngon gần nhà. Giao nhanh tận nơi tại Tam Nông, Phú Thọ.">
   <meta property="og:url" content="https://tamnongangi.com/">
-  <meta property="og:image" content="https://tamnongangi.com/og-image.jpg?v=20261109">
+  <meta property="og:image" content="https://tamnongangi.com/og-image.jpg?v=20261109e">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Tam Nông Ăn Gì? – Đặt đồ ăn online tại Tam Nông">
   <meta name="twitter:description" content="Đặt món dễ dàng, ngon gần nhà. Giao nhanh tận nơi tại Tam Nông, Phú Thọ.">
-  <meta name="twitter:image" content="https://tamnongangi.com/og-image.jpg?v=20261109">
+  <meta name="twitter:image" content="https://tamnongangi.com/og-image.jpg?v=20261109e">
   <!-- Google Search Console: nếu chọn cách xác minh "Thẻ HTML", dán thẻ meta google-site-verification vào ngay dưới dòng này -->
   <script type="application/ld+json">
   {
@@ -52,7 +52,6 @@
         "logo": "https://tamnongangi.com/icon-512.png",
         "image": "https://tamnongangi.com/og-image.jpg",
         "description": "Nền tảng đặt đồ ăn và giao hàng tận nơi tại Tam Nông, Phú Thọ.",
-        "email": "DAN-EMAIL-ADMIN@gmail.com",
         "areaServed": { "@type": "AdministrativeArea", "name": "Tam Nông, Phú Thọ, Việt Nam" }
       }
     ]
@@ -64,13 +63,13 @@
   <!-- Tải sẵn module dữ liệu để danh sách quán hiện nhanh -->
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-  <link rel="modulepreload" href="firebase-config.js?v=20261023a">
-  <link rel="modulepreload" href="fb.js?v=20261107a">
+  <link rel="modulepreload" href="firebase-config.js?v=20261109e">
+  <link rel="modulepreload" href="fb.js?v=20261109e">
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js">
-  <link rel="stylesheet" href="style.css?v=20261109c">
-<script src="install.js?v=20261103d"></script>
+  <link rel="stylesheet" href="style.css?v=20261109e">
+<script src="install.js?v=20261109e"></script>
 <script>
 /* Khóa zoom: iOS Safari bỏ qua user-scalable=no nên chặn thêm cử chỉ chụm 2 ngón; double-tap đã tắt bằng touch-action:manipulation */
 ['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();},{passive:false});});
@@ -102,7 +101,7 @@ document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length
     </button>
     <div id="install-backdrop" class="sheet-backdrop" hidden></div>
     <div id="install-sheet" class="bottom-sheet" role="dialog" aria-modal="true" hidden></div>
-    <a id="zalo-fab" class="zalo-fab" href="https://zalo.me/0000000000" target="_blank" rel="noopener" aria-label="Nhắn tin Zalo cho Tam Nông Ăn Gì">
+    <a id="zalo-fab" class="zalo-fab" style="display:none" href="https://zalo.me/" target="_blank" rel="noopener" aria-label="Nhắn tin Zalo cho Tam Nông Ăn Gì">
       <svg viewBox="0 0 48 48" width="56" height="56" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="#0068ff"/><text x="24" y="29" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="15" fill="#fff">Zalo</text></svg>
     </a>
   </div>
@@ -111,6 +110,6 @@ document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length
     <p>Tam Nông Ăn Gì (Tam Nong An Gi) giúp bạn đặt món từ các quán ăn ngon gần nhà và giao tận nơi tại Tam Nông, Phú Thọ: phở, cơm tấm, bánh mì, trà sữa và nhiều món khác. Thanh toán tiền mặt khi nhận hàng hoặc chuyển khoản qua mã QR.</p>
     <p>Vui lòng bật JavaScript để xem danh sách quán và đặt món.</p>
   </noscript>
-  <script src="app.js?v=20261109c"></script>
+  <script src="app.js?v=20261109e"></script>
 </body>
 </html>

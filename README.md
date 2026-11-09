@@ -8,11 +8,12 @@ Website tĩnh (HTML + CSS + JavaScript thuần, không cần build) chạy trên
 - `fb.js`, `firebase-config.js`, `upload-config.js`, `goong-config.js` – cấu hình và lớp dữ liệu.
 - `firestore.rules` – luật bảo mật (dán vào Firebase Console → Firestore → Rules → Publish).
 - `google-apps-script.gs` + `appsscript.json` – dán vào script.google.com.
+- `404.html` – trang báo lỗi đường dẫn; `.nojekyll` – tắt Jekyll của GitHub Pages.
 - `manifest.json`, `icon-*.png` – cài lên màn hình chính điện thoại (PWA).
 - Hướng dẫn chi tiết: **HUONG-DAN.md**. Danh sách việc cần làm trước khi mở bán: **KIEM-TRA-TRUOC-KHI-MO.md**.
 
 ## Đưa lên GitHub Pages
-Settings → Pages → Deploy from a branch → `main` / root. Tên miền trong `CNAME`.
+Settings → Pages → Deploy from a branch → `main` / root. Nếu dùng tên miền riêng, tạo file `CNAME` (một dòng: tên miền) ở thư mục gốc.
 
 ## Cập nhật
 Sửa file xong, đổi số phiên bản `?v=...` trong các file (tìm/thay toàn bộ) để trình duyệt tải bản mới.

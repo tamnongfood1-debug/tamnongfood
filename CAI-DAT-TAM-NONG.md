@@ -18,5 +18,4 @@ Bản này giữ nguyên 100% chức năng của Lâm Thao Ăn Gì? (gồm chế
 | SĐT/Zalo `0000000000` | `index.html` (nút Zalo), `app.js` (mục Quên mật khẩu); hoặc nhập ở Admin → Liên hệ |
 | Danh sách xã/khu vực giao hàng (đang chỉ có 2 mục) | `app.js`, dòng `const AREAS = [...]` |
 | `ADMIN_EMAIL` | `google-apps-script.gs` |
-| Logo/ảnh chia sẻ có chữ "Lâm Thao Ăn Gì?": `icon-192.png`, `icon-512.png`, `favicon.png`, `og-image.jpg`, `avatar.jpg`, `banner-food.jpg` | thay bằng ảnh Tam Nông |
 | Quán/menu mẫu trong code (Phở Bò Tam Nông…) chỉ hiện khi chưa kết nối Firebase | `app.js` |
