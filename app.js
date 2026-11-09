@@ -1439,8 +1439,8 @@
     if (a === 'svc-errand') return openService('errand');
     if (a === 'spin') return tnSpin();
     if (a === 'order-now') return $('#shops-anchor').scrollIntoView({ behavior:'smooth', block:'start' });
-    if (a === 'hot-all') { S.home.sector = 'food'; S.home.cat = 'Bán chạy'; S.home.q = ''; S.home.sort = 'default'; go('home'); return; }
-    if (a === 'see-all') { S.home.cat = 'Tất cả'; S.home.q = ''; S.home.sort = 'default'; renderHome(); return toast('Đang hiển thị tất cả'); }
+    if (a === 'hot-all' || a === 'see-all') { e.preventDefault(); S.home.sector = 'food'; S.home.cat = 'Tất cả'; S.home.q = ''; S.home.sort = 'default'; if (S.tab === 'home') renderHome(); else go('home'); setTimeout(() => { const an = document.getElementById('shops-anchor'); if (an) an.scrollIntoView({ behavior:'smooth', block:'start' }); }, 80); return; }
+    
     if (a === 'fav-all') { $('#fav-body').scrollIntoView({ behavior:'smooth' }); return; }
     if (a === 'orders-search') { S.orders.search = !S.orders.search; if (!S.orders.search) S.orders.q = ''; renderOrders(); if (S.orders.search) $('#orders-q').focus(); return; }
   });
