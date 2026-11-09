@@ -907,8 +907,8 @@ body{background:#ddd}
 .slot small{position:absolute;bottom:-8px;background:var(--blue);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap}
 body.tab-home .slot{display:flex}
 /* Zalo + Tải App xếp phía trên nút quay */
-.zalo-fab{bottom:calc(var(--nav-h) + 168px)!important}
-.install-fab{bottom:calc(var(--nav-h) + 236px)!important}
+.zalo-fab{bottom:calc(var(--nav-h) + 88px)!important}
+.install-fab{bottom:calc(var(--nav-h) + 154px)!important}
 /* thanh điều hướng dưới */
 #nav button{color:#666;font-weight:600}
 #nav button.on{color:#e0a800;font-weight:700}
