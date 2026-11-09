@@ -16,6 +16,8 @@
     truck:'<path d="M2.5 7h10v9h-10zM12.5 10h4.2l3 3v3h-7.2"/><circle cx="6.5" cy="17.5" r="1.7"/><circle cx="16.5" cy="17.5" r="1.7"/>',
     heart:'<path d="M12 20s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.400 4.300 4.300 0 0 1 19.500 10c0 5.400-7.500 10-7.500 10z"/>',
     home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/>',
+    hist:'<path d="M3 12a9 9 0 1 0 3-6.700L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+    mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
     clipboard:'<rect x="5" y="4" width="14" height="17" rx="2.500"/><path d="M9 4h6v3H9zM9 11h6M9 15h5"/>',
     chat:'<path d="M3.500 4.500h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-3.500 3v-3a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z" transform="translate(0 -.5)"/><path d="M18.500 8.500h.5a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2v3l-3.500-3H11"/>',
     user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/>',
@@ -265,10 +267,10 @@
   /* ---------------- HOME ---------------- */
   /* Các mục trên trang chủ. Mỗi cửa hàng có trường sector (Admin chọn khi thêm / sửa quán): food | fresh | fashion | service. Không có = food. */
   const SECTORS = {
-    food:    { t:'Đồ ăn', img:'icon-food.png', ph:'Bạn muốn ăn gì hôm nay?', head:'Quán ngon gần bạn', cats:['Tất cả','Nổi bật','Bán chạy','Quán mới','Cơm','Phở','Bún','Đồ uống','Ăn vặt','Lẩu'], empty:'Các quán sẽ sớm có mặt ở đây.' },
+    food:    { t:'Đồ ăn', img:'cat-1.png', ph:'Bạn muốn ăn gì hôm nay?', head:'Quán ngon gần bạn', cats:['Tất cả','Nổi bật','Bán chạy','Quán mới','Cơm','Phở','Bún','Đồ uống','Ăn vặt','Lẩu'], empty:'Các quán sẽ sớm có mặt ở đây.' },
     fresh:   { t:'Thực phẩm sống', img:'icon-fresh.png', ph:'Bạn muốn mua gì hôm nay?', head:'Thực phẩm tươi sống', cats:['Tất cả','Nổi bật','Bán chạy','Quán mới','Thịt','Cá','Hải sản','Rau củ','Trứng'], empty:'Mục Thực phẩm sống sẽ sớm ra mắt.' },
     fashion: { t:'Thời trang', img:'icon-fashion.png', ph:'Bạn muốn tìm cửa hàng nào?', head:'Cửa hàng thời trang', cats:['Tất cả','Nổi bật','Quán mới','Nữ','Nam','Trẻ em','Phụ kiện'], empty:'Mục Thời trang sẽ sớm ra mắt.' },
-    service: { t:'Dịch vụ khác', img:'icon-other.png', ph:'Bạn cần dịch vụ gì?', head:'Dịch vụ tại Tam Nông', cats:['Tất cả','Nổi bật','Quán mới','Chụp ảnh','Makeup','Cúng - Lễ','Khác'], empty:'Các dịch vụ sẽ sớm có mặt ở đây.' },
+    service: { t:'Dịch vụ khác', img:'cat-4.png', ph:'Bạn cần dịch vụ gì?', head:'Dịch vụ tại Tam Nông', cats:['Tất cả','Nổi bật','Quán mới','Chụp ảnh','Makeup','Cúng - Lễ','Khác'], empty:'Các dịch vụ sẽ sớm có mặt ở đây.' },
   };
   const sectorOf = s => (s && SECTORS[s.sector] ? s.sector : 'food');
   const SERVICES = Object.keys(SECTORS).map((k, i) => ({ k, t:SECTORS[k].t, img:SECTORS[k].img }));
@@ -331,29 +333,56 @@
     $$('#view-home .service').forEach(b => b.classList.toggle('active', b.dataset.svc === k));
     q.value = ''; q.placeholder = sec.ph;
     const bw = $('#banner-wrap'); if (bw) bw.hidden = k !== 'food';
+    const ex = $('#tn-extra'); if (ex) ex.innerHTML = tnExtra();
     const h = $('#shops-anchor h2'); if (h) h.textContent = sec.head;
     $('#home-chips').innerHTML = chipsHtml();
     list.innerHTML = shopListHtml();
+  }
+  /* ---- Giao diện Tam Nông: danh mục, "Hôm nay ăn gì?", "Quán hot", nút quay "Ăn gì?" ---- */
+  const TN_CATS = [
+    { k:'food', t:'Đồ ăn', img:'cat-1.png' }, { act:'svc-delivery', t:'Giao hàng', img:'cat-2.png' },
+    { act:'svc-errand', t:'Mua sắm', img:'cat-3.png' }, { k:'service', t:'Dịch vụ khác', img:'cat-4.png' },
+    { k:'fresh', t:'Thực phẩm sống', img:'icon-fresh.png' }, { k:'fashion', t:'Thời trang', img:'icon-fashion.png' },
+  ];
+  const tnCats = () => TN_CATS.map(c => `<button class="service ${c.k && c.k === S.home.sector ? 'active' : ''}" ${c.k ? `data-svc="${c.k}"` : `data-act="${c.act}"`}><span class="ic"><img src="${c.img}" alt="" width="40" height="40" loading="eager" decoding="async"></span>${c.t}</button>`).join('');
+  let TN_SEED = Math.random();
+  const tnPick = (list, n) => [...list].map((s, i) => [s, Math.abs(Math.sin((i + 1) * 9301 + TN_SEED * 49297)) ]).sort((x, y) => x[1] - y[1]).slice(0, n).map(x => x[0]);
+  const tnEta = s => s.eta ? String(s.eta).replace(/\s*phút.*/i, '') + ' phút' : '';
+  const tnRate = s => `<span class="tn-rate">★ ${s.rate ? s.rate.toFixed(1) : 'Mới'}${tnEta(s) ? ' · ' + tnEta(s) : ''}</span>`;
+  function tnExtra() {
+    if (S.home.sector !== 'food' || S.home.q.trim()) return '';
+    const food = SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false);
+    if (!food.length) return '';
+    const today = tnPick(food, 8);
+    const hot = [...food].sort((a, b) => (b.hot - a.hot) || (b.featured - a.featured) || (b.sold - a.sold) || (b.rate - a.rate)).slice(0, 4);
+    return `<div class="tn-sec"><span class="tn-ico">💡</span><div><h4>Hôm nay ăn gì?</h4><p>Gợi ý cho bạn những món ngon</p></div><button class="tn-more" data-act="see-all">Xem tất cả</button></div>
+      <div class="tn-hs">${today.map(s => `<article class="tn-card" data-shop="${s.id}"><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><h5>${s.name}</h5><p>${tnRate(s)}</p></article>`).join('')}</div>
+      <div class="tn-sec"><span class="tn-ico">🔥</span><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div><button class="tn-more" data-act="see-all">Xem tất cả</button></div>
+      ${hot.map(s => `<article class="tn-hot" data-shop="${s.id}"><span class="tn-rb">HOT</span><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><div><h5>${s.name}</h5><p>${tnRate(s)}</p><div class="tn-tags">${s.sale ? `<span>Giảm ${s.sale}%</span>` : '<span>Món ngon</span>'}${s.ship ? `<span>Freeship từ ${s.ship}</span>` : '<span>Được yêu thích</span>'}</div></div></article>`).join('')}`;
+  }
+  function tnSpin() {
+    const food = SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false);
+    if (!food.length) return toast('Chưa có quán nào đang mở cửa');
+    const s = food[Math.floor(Math.random() * food.length)];
+    toast('🎰 Hôm nay ăn: ' + s.name); setTimeout(() => openShopPage(s), 900);
   }
   function renderHome() {
     const el = $('#view-home');
     const scroll = el.scrollTop;
     el.innerHTML = `
-      <div class="hero tall hung compact">
-        <img class="hero-photo" src="den-hung.jpg" alt="Cổng Đền Hùng, Phú Thọ" fetchpriority="high" decoding="async">
-        <div class="hero-top">${locBtn()}${bellBtn()}</div>
-        <div style="margin-top:8px">${logo('sm')}</div>
-        <p class="tagline">Đặt món dễ dàng – Ngon gần nhà</p>
+      <div class="tn-hd">
+        <div class="tn-row"><span>Giao đến:</span><button class="tn-chip" data-act="area">${esc(S.area)}</button><span class="tn-sp"></span>${bellBtn()}</div>
+        <button class="tn-addr" data-act="area">${fx.pinF}<b>${esc(S.user && S.user.address ? S.user.address : 'Chưa chọn địa chỉ')}</b></button>
       </div>
-      <div class="search-float"><label class="search">${ic('search')}<input id="home-q" type="search" placeholder="${SECTORS[S.home.sector].ph}" value="${S.home.q.replace(/"/g, '&quot;')}" autocomplete="off"><button class="filter-btn" data-act="filter" aria-label="Bộ lọc">${ic('sliders')}</button></label></div>
-      <div class="services">${SERVICES.map(s => `<button class="service ${s.k === S.home.sector ? 'active' : ''} ${s.tint ? 'tint' : ''}" data-svc="${s.k}"><span class="ic"><img src="${s.img}?v=1" alt="" width="56" height="56" loading="eager" decoding="async"></span>${s.t}</button>`).join('')}</div>
-      <div class="banner-wrap" id="banner-wrap" ${S.home.sector === 'food' ? '' : 'hidden'}><div class="banner" id="banner">${bannerInner()}</div></div>
+      <div class="tn-srch"><label class="search">${ic('search')}<input id="home-q" type="search" placeholder="${SECTORS[S.home.sector].ph}" value="${S.home.q.replace(/"/g, '&quot;')}" autocomplete="off"><button class="filter-btn" data-act="filter" aria-label="Bộ lọc">${ic('sliders')}</button></label></div>
+      <div class="services tn-cats">${tnCats()}</div>
+      <div id="tn-extra">${tnExtra()}</div>
       <div class="section-head" id="shops-anchor"><h2>${SECTORS[S.home.sector].head}</h2><button class="see-all" data-act="see-all">Xem tất cả ${ic('chevRight')}</button></div>
       <div class="chips" id="home-chips">${chipsHtml()}</div>
       <div class="shop-list" id="home-list">${shopListHtml()}</div>`;
     el.scrollTop = scroll;
     const q = $('#home-q');
-    q.addEventListener('input', e => { S.home.q = e.target.value; $('#home-list').innerHTML = shopListHtml(); });
+    q.addEventListener('input', e => { S.home.q = e.target.value; $('#home-list').innerHTML = shopListHtml(); const ex = $('#tn-extra'); if (ex) ex.innerHTML = tnExtra(); });
   }
   let slideTimer;
   function startSlider() {
@@ -551,6 +580,7 @@
         </div>
         <div class="group-title">Tài khoản &amp; Tiện ích</div>
         <div class="menu">
+          ${menuItem('favs', ic('heart'), '', 'Quán yêu thích', 'Các quán bạn đã lưu')}
           ${menuItem('account', fx.userF, '', 'Thông tin tài khoản', 'Xem và chỉnh sửa thông tin cá nhân')}
           ${menuItem('address', fx.pinF, '', 'Địa chỉ đã lưu', 'Quản lý các địa chỉ giao hàng')}
           ${menuItem('payment', fx.walletF, '', 'Phương thức thanh toán', LIVE ? 'Tiền mặt, Chuyển khoản' : 'Thẻ ngân hàng, Ví điện tử, Tiền mặt')}
@@ -943,21 +973,13 @@
 
   /* ---------------- ROUTER ---------------- */
   const TABS = [
-    ['home','Trang chủ','home'], ['orders','Đơn hàng','clipboard'], ['favorites','Yêu thích','heart'],
-    ['notifications','Thông báo','chat'], ['profile','Cá nhân','user'],
+    ['home','Trang chủ','home'], ['orders','Hoạt động','hist'], ['notifications','Hộp thư','mail'], ['profile','Tài khoản','user'],
   ];
   const renderers = { home:renderHome, orders:renderOrders, favorites:renderFavorites, notifications:renderNotifications, profile:renderProfile, auth:renderAuth };
   function renderNav() {
     $('#nav').innerHTML = TABS.map(([k, t, i]) => {
       const on = S.tab === k;
-      let svg = ic(i);
-      if (on) {
-        if (k === 'home') svg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.800L2.500 11.200a1 1 0 0 0 .7 1.800H5v7a1 1 0 0 0 1 1h3.500v-6h5v6H18a1 1 0 0 0 1-1v-7h1.800a1 1 0 0 0 .7-1.800z"/></svg>';
-        if (k === 'orders') svg = '<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M8.500 3a2 2 0 0 0-2 2H6a2.500 2.500 0 0 0-2.500 2.500v11A2.500 2.500 0 0 0 6 21h12a2.500 2.500 0 0 0 2.500-2.500v-11A2.500 2.500 0 0 0 18 5h-.5a2 2 0 0 0-2-2zm.5 2.500h6V4.500H9zM8 11h8v1.700H8zm0 4h6v1.700H8z"/></svg>';
-        if (k === 'favorites') svg = fx.heartF;
-        if (k === 'notifications') svg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.500a6.500 6.500 0 0 0-6.500 6.500v4.200L3.600 16.300a1 1 0 0 0 .8 1.700h15.200a1 1 0 0 0 .8-1.700l-1.900-3.100V9A6.500 6.500 0 0 0 12 2.500zM9.500 19.500a2.500 2.500 0 0 0 5 0z"/></svg>';
-        if (k === 'profile') svg = fx.userF;
-      }
+      const svg = ic(i);
       const badge = k === 'notifications' && unreadCount() ? '<span class="badge"></span>' : '';
       return `<button class="${on ? 'on' : ''}" data-go="${k}" aria-label="${t}">${svg}${t}${badge}</button>`;
     }).join('');
@@ -972,7 +994,7 @@
     $('#app').classList.toggle('no-nav', tab === 'auth');
     $('#nav').style.display = tab === 'auth' ? 'none' : 'flex';
     $('#views').style.bottom = tab === 'auth' ? '0' : 'var(--nav-h)';
-    renderNav();
+    renderNav(); document.body.classList.toggle('tab-home', tab === 'home');
     if (push && location.hash !== '#' + tab) history.pushState(null, '', '#' + tab);
   }
   window.addEventListener('popstate', () => { if (shopPageOpen) { hideShopPage(); return; } go(location.hash.slice(1) || 'home', false); });
@@ -1316,6 +1338,9 @@
     if (a === 'area') return openSheet(`<h3>Chọn khu vực giao hàng</h3>${AREAS.map(x => `<button class="opt ${x === S.area ? 'sel' : ''}" data-setarea="${x}">${ic('mapPin')}${x}${x === S.area ? `<span class="tick">${ic('check')}</span>` : ''}</button>`).join('')}`);
     if (a === 'filter') return openSheet(`<h3>Sắp xếp &amp; lọc</h3>${[['default','Mặc định'],['rate','Đánh giá cao nhất'],['fast','Giao nhanh nhất'],['sale','Đang giảm giá']].map(([k, l]) => `<button class="opt ${S.home.sort === k ? 'sel' : ''}" data-setsort="${k}">${l}${S.home.sort === k ? `<span class="tick">${ic('check')}</span>` : ''}</button>`).join('')}`);
     if (a === 'filter-fav') return openSheet(`<h3>Sắp xếp yêu thích</h3>${[['recent','Mới lưu nhất'],['rate','Đánh giá cao'],['name','Tên A - Z']].map(([k, l]) => `<button class="opt ${S.fav.sort === k ? 'sel' : ''}" data-setfsort="${k}">${l}${S.fav.sort === k ? `<span class="tick">${ic('check')}</span>` : ''}</button>`).join('')}`);
+    if (a === 'svc-delivery') return openService('delivery');
+    if (a === 'svc-errand') return openService('errand');
+    if (a === 'spin') return tnSpin();
     if (a === 'order-now') return $('#shops-anchor').scrollIntoView({ behavior:'smooth', block:'start' });
     if (a === 'see-all') { S.home.cat = 'Tất cả'; S.home.q = ''; S.home.sort = 'default'; renderHome(); return toast('Đang hiển thị tất cả'); }
     if (a === 'fav-all') { $('#fav-body').scrollIntoView({ behavior:'smooth' }); return; }
@@ -1431,6 +1456,7 @@
   }
 
   function menuAction(k) {
+    if (k === 'favs') return go('favorites');
     if (k === 'pushset') return pushSheet();
     if (k.startsWith('open-')) { location.href = 'quanly.html'; return; }
     if (k === 'logout') {

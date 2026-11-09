@@ -782,3 +782,138 @@ body{font-size:13px}
 #maint-bar{position:sticky;top:0;z-index:60;background:#e5484d;color:#fff;padding:10px 16px;font-size:14px;line-height:1.35;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 #maint-bar b{display:block;font-size:15px;margin-bottom:2px}
 .is-maint .sheet-btn[data-placeorder]{background:#9aa0a6!important;border-color:#9aa0a6!important}
+
+/* =====================================================================
+   GIAO DIỆN TAM NÔNG (vàng #FFD04F + xanh navy #0a1a8c + đỏ cam #e8442b)
+   Lớp phủ lên bộ giao diện gốc: chỉ đổi màu / bố cục trang chủ, toàn bộ chức năng giữ nguyên.
+   ===================================================================== */
+:root{--green:#FFD04F;--green-d:#f0b800;--green-l:#fff8e1;--green-xl:#fffbea;--yellow:#FFD04F;--blue:#0a1a8c;--red:#e8442b;--orange:#f0a500;--chip:#f5f5f5;--ink:#222;--ink-2:#777;--ink-3:#999}
+body{background:#ddd}
+/* chữ đặt trên nền vàng → xanh navy */
+.service.active .ic,
+.service.active::after,
+.chip.on,
+.seg button.on,
+.avatar .cam,
+.btn.primary,
+.tabs button.on::after,
+.btn-main,
+.agree input,
+.track .st.done i,
+.track .st.done::before,
+.sheet-btn,
+.qty button:active,
+.install-fab,
+.sv-call,
+.vc.on .vc-chk{color:var(--blue)}
+/* chữ / icon từng là xanh lá → xanh navy */
+.see-all,
+.tag.ship,
+.order .price,
+.status.ship,
+.btn-soft,
+.notice .time svg,
+.member,
+.stat b,
+.mi .mic,
+.btn.outline,
+.promo .go,
+.tabs button.on,
+.forgot,
+.agree a,
+#nav button.on,
+.opt svg,
+.opt.sel,
+.qty button,
+.sp-back,
+.sp-addr svg,
+.sp-group h3,
+.sp-item .ph,
+.co-qty,
+.co-promo button,
+.co-loc-ic,
+.co-row.off b,
+.co-total b,
+.pay-opt.on b,
+.cp-mini,
+.pay-ok,
+.paytag.ok,
+.sv-loc,
+.ia-step b:first-child,
+.pg-h,
+.pg-card .ph,
+.pg-detail{color:var(--blue)}
+.see-all,.tn-more{color:var(--orange)!important}
+.order .price,.co-total b,.co-row.off b,.pc{color:var(--red)}
+.status-banner{background:var(--blue)}
+.shipper-call{background:var(--yellow);color:var(--blue)}
+.shipper-line,.shipper-line a{color:var(--blue)}
+.shield,.tag.ship{color:var(--blue)}
+/* tiêu đề trang (Hoạt động / Hộp thư / Tài khoản / Yêu thích): nền vàng bo tròn như bản Tam Nông */
+.hero,.hero.hung{background:var(--yellow)!important;color:var(--blue)}
+.hero::before,.hero.hung::before{display:none!important}
+.hero .hero-photo{display:none!important}
+.hero::after{background:var(--bg)}
+.hero .page-title,.hero .page-sub,.hero h1,.hero h2{color:var(--blue)!important;text-shadow:none!important}
+.hero .page-sub{opacity:.75}
+/* ---------- Trang chủ ---------- */
+.tn-hd{background:var(--yellow);padding:14px 16px 34px;color:var(--blue);border-radius:0 0 24px 24px}
+.tn-row{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600}
+.tn-sp{flex:1}
+.tn-chip{background:rgba(255,255,255,.45);padding:4px 12px;border-radius:14px;font-size:14px;font-weight:700;color:var(--blue)}
+.tn-hd .bell{color:var(--blue);background:rgba(255,255,255,.35);position:relative;width:36px;height:36px;border-radius:50%;display:grid;place-items:center}
+.tn-hd .bell svg{width:20px;height:20px}
+.tn-addr{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:16px;font-weight:800;color:var(--blue);text-align:left;max-width:100%}
+.tn-addr svg{flex:none;width:24px;height:24px}
+.tn-addr b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tn-srch{margin:-20px 14px 0;position:relative;z-index:3}
+.tn-srch .search{display:flex;align-items:center;gap:10px;background:#fff;border-radius:30px;padding:0 14px;height:48px;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.tn-srch .search svg{width:22px;height:22px;color:#222;flex:none}
+.tn-srch .search input{flex:1;min-width:0;font-size:15px}
+.tn-cats{justify-content:flex-start;gap:6px;overflow-x:auto;padding:16px 10px 6px;scrollbar-width:none}
+.tn-cats::-webkit-scrollbar{display:none}
+.tn-cats .service{flex:0 0 23%;min-width:84px;font-size:12.5px;font-weight:600;line-height:1.25;color:#333;text-align:center}
+.tn-cats .service .ic{width:56px;height:56px;border-radius:16px;background:#fff8e1!important;box-shadow:none;opacity:1}
+.tn-cats .service .ic img{width:40px;height:40px;border-radius:0;object-fit:contain}
+.tn-cats .service.active .ic{box-shadow:0 0 0 2px var(--yellow);background:#fff2c2!important}
+.tn-cats .service.active::after{display:none}
+.tn-sec{display:flex;gap:10px;align-items:center;padding:16px 14px 8px}
+.tn-ico{width:38px;height:38px;border-radius:12px;background:#fff8e1;display:grid;place-items:center;font-size:20px;flex:none}
+.tn-sec>div{flex:1;min-width:0}
+.tn-sec h4{font-size:18px;line-height:1.2;color:#222}
+.tn-sec p{color:#888;font-size:13px}
+.tn-more{font-size:14px;font-weight:700;white-space:nowrap}
+.tn-hs{display:flex;gap:12px;overflow-x:auto;padding:6px 14px;scrollbar-width:none}
+.tn-hs::-webkit-scrollbar{display:none}
+.tn-card{flex:none;width:200px;border-radius:14px;background:#fafafa;padding:10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tn-card img{width:100%;height:150px;border-radius:12px;object-fit:cover;background:#f0f0f0;margin-bottom:8px}
+.tn-card h5{color:var(--blue);font-size:16px;line-height:1.25}
+.tn-card p,.tn-hot p{color:#888;font-size:14px;margin-top:4px}
+.tn-rate{color:#888}
+.tn-hot{position:relative;display:flex;gap:12px;align-items:center;margin:8px 14px;background:#fafafa;border-radius:14px;padding:10px;overflow:hidden;cursor:pointer}
+.tn-hot img{width:90px;height:90px;border-radius:10px;object-fit:cover;flex:none;background:#f0f0f0}
+.tn-hot h5{font-size:17px;color:#222;padding-right:26px}
+.tn-rb{position:absolute;right:-26px;top:12px;background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:3px 34px;transform:rotate(45deg)}
+.tn-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tn-tags span{background:var(--red);color:#fff;border-radius:8px;padding:4px 9px;font-size:12px}
+.section-head h2{color:#222}
+.chip{background:#fff;border:1px solid #ddd;color:#333}
+.chip.on{background:var(--yellow);border-color:var(--yellow);color:var(--blue)}
+.shop{background:#fafafa;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.shop h3{color:var(--blue)}
+.sheet-btn,.btn-main{border-radius:40px;font-weight:800}
+/* nút quay "Ăn gì?" */
+.slot{display:none;position:absolute;right:12px;bottom:calc(var(--nav-h) + 12px);width:62px;height:62px;border-radius:50%;background:var(--yellow);border:4px solid var(--blue);font-size:28px;z-index:26;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.slot small{position:absolute;bottom:-8px;background:var(--blue);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap}
+body.tab-home .slot{display:flex}
+/* Zalo + Tải App xếp phía trên nút quay */
+.zalo-fab{bottom:calc(var(--nav-h) + 168px)!important}
+.install-fab{bottom:calc(var(--nav-h) + 236px)!important}
+/* thanh điều hướng dưới */
+#nav button{color:#666;font-weight:600}
+#nav button.on{color:#e0a800;font-weight:700}
+#nav button .badge{background:var(--red)}
+.sp-cartbar{background:var(--yellow);border-radius:40px}
+.sp-cartbar.empty{background:#ccc}
+.sp-cartbar,.sp-cartbar span,.sp-cartbar b{color:var(--blue)}
+.sp-cartbar.empty,.sp-cartbar.empty span,.sp-cartbar.empty b{color:#666}

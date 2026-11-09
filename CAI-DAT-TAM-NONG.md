@@ -1,6 +1,6 @@
 # Tam Nông Ăn Gì? – cài đặt bản sao (từ web Lâm Thao Ăn Gì?)
 
-Bản này giữ nguyên 100% chức năng và giao diện của Lâm Thao Ăn Gì? (gồm chế độ bảo trì), đã trỏ sẵn tới Firebase project `tamnongfood-2e8a8`.
+Bản này giữ nguyên 100% chức năng của Lâm Thao Ăn Gì? (gồm chế độ bảo trì) và dùng GIAO DIỆN của web Tam Nông cũ (header vàng, danh mục, "Hôm nay ăn gì?", "Quán hot", nút quay "Ăn gì?", thanh dưới 4 mục Trang chủ / Hoạt động / Hộp thư / Tài khoản; mục "Quán yêu thích" nằm trong Tài khoản), đã trỏ sẵn tới Firebase project `tamnongfood-2e8a8`.
 
 ## Làm theo thứ tự
 1. **Firestore Rules**: Firebase Console → Firestore → Rules → dán toàn bộ `firestore.rules` → Publish. (Rules cũ của web Tam Nông sẽ bị thay; dữ liệu đơn/quán cũ kiểu cũ không dùng được nữa.)
