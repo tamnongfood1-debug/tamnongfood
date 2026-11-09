@@ -354,11 +354,36 @@
     const food = SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false);
     if (!food.length) return '';
     const today = tnPick(food, 8);
-    const hot = [...food].sort((a, b) => (b.hot - a.hot) || (b.featured - a.featured) || (b.sold - a.sold) || (b.rate - a.rate)).slice(0, 4);
     return `<div class="tn-sec"><span class="tn-ico">💡</span><div><h4>Hôm nay ăn gì?</h4><p>Gợi ý cho bạn những món ngon</p></div><button class="tn-more" data-act="see-all">Xem tất cả</button></div>
       <div class="tn-hs">${today.map(s => `<article class="tn-card" data-shop="${s.id}"><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><h5>${s.name}</h5><p>${tnRate(s)}</p></article>`).join('')}</div>
-      <div class="tn-sec"><span class="tn-ico">🔥</span><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div><button class="tn-more" data-act="see-all">Xem tất cả</button></div>
-      ${hot.map(s => `<article class="tn-hot" data-shop="${s.id}"><span class="tn-rb">HOT</span><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><div><h5>${s.name}</h5><p>${tnRate(s)}</p><div class="tn-tags">${s.sale ? `<span>Giảm ${s.sale}%</span>` : '<span>Món ngon</span>'}${s.ship ? `<span>Freeship từ ${s.ship}</span>` : '<span>Được yêu thích</span>'}</div></div></article>`).join('')}`;
+      ${hotSectionHtml('see-all')}`;
+  }
+  /* ---- Quán hot: dùng chung cho Trang chủ và trang Cá nhân (có hiệu ứng chuyển động) ---- */
+  const hotShops = n => SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false)
+    .sort((a, b) => (b.hot - a.hot) || (b.featured - a.featured) || (b.sold - a.sold) || (b.rate - a.rate)).slice(0, n);
+  const hotTags = s => `${s.sale ? `<span>Giảm ${s.sale}%</span>` : '<span>Món ngon</span>'}${s.ship ? `<span>Freeship từ ${s.ship}</span>` : '<span>Được yêu thích</span>'}`;
+  const hotHead = act => `<div class="tn-sec tn-fx"><span class="tn-ico tn-flame">🔥</span><div><h4>Quán hot được yêu thích</h4><p>Những quán nổi bật nhất tuần này</p></div><button class="tn-more" data-act="${act}">Xem tất cả</button></div>`;
+  const hotListHtml = list => list.map((s, i) => `<article class="tn-hot tn-in" data-shop="${s.id}" style="--d:${i * 90}ms"><span class="tn-rb">HOT</span><span class="tn-rank">${i + 1}</span><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><div><h5>${s.name}</h5><p>${tnRate(s)}</p><div class="tn-tags">${hotTags(s)}</div></div></article>`).join('');
+  function hotSectionHtml(act) {
+    const l = hotShops(4);
+    return l.length ? hotHead(act) + hotListHtml(l) : '';
+  }
+  /* Trang Cá nhân: băng chuyền ngang tự trượt, thẻ nổi lên lần lượt */
+  function hotCarouselHtml() {
+    const l = hotShops(6);
+    if (!l.length) return LIVE && !shopsLoaded ? `<div class="empty" style="padding:18px"><b>Đang tải quán hot…</b></div>` : '';
+    return hotHead('hot-all') + `<div class="tn-hs tn-hs-auto" id="hot-rail">${l.map((s, i) => `<article class="tn-card tn-in" data-shop="${s.id}" style="--d:${i * 80}ms"><span class="tn-rb tn-rb2">HOT</span><img src="${s.img}" alt="${esc(s.name)}" loading="lazy" decoding="async"><h5>${s.name}</h5><p>${tnRate(s)}</p><div class="tn-tags">${hotTags(s)}</div></article>`).join('')}</div>`;
+  }
+  let hotRailTimer;
+  function startHotRail() {
+    clearInterval(hotRailTimer);
+    hotRailTimer = setInterval(() => {
+      if (S.tab !== 'profile') return;
+      const r = $('#hot-rail'); if (!r || r.scrollWidth <= r.clientWidth + 4 || r.matches(':active')) return;
+      const step = (r.firstElementChild ? r.firstElementChild.offsetWidth : 200) + 12;
+      if (r.scrollLeft + r.clientWidth >= r.scrollWidth - 8) r.scrollTo({ left:0, behavior:'smooth' });
+      else r.scrollBy({ left:step, behavior:'smooth' });
+    }, 3200);
   }
   function tnSpin() {
     const food = SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false);
@@ -566,15 +591,15 @@
 
   /* ---------------- PROFILE ---------------- */
   const menuItem = (act, icon, color, t, sub, extra = '') => `<button class="mi ${extra}" data-menu="${act}"><span class="mic ${color}">${icon}</span><span class="mt"><b>${t}</b><small>${sub}</small></span>${ic('chevRight', 'ch')}</button>`;
-  const fmtPhone = p => p.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+  const fmtPhone = p => String(p == null ? '' : p).replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3') || 'Chưa có số điện thoại';
   function renderProfile() {
     const el = $('#view-profile');
     if (S.user) {
       el.innerHTML = `
         <div class="hero" style="padding-bottom:110px"><div style="padding-top:34px"><div class="page-title" style="font-size:28px">Cá nhân</div><p class="page-sub">Quản lý tài khoản của bạn</p></div></div>
         <div class="profile-card" style="margin-top:-96px">
-          <div class="pc-top" data-menu="account"><div class="avatar"><img src="avatar.jpg" alt="${esc(S.user.name)}"><span class="cam">${ic('camera')}</span></div>
-            <div class="pc-info"><h2>${esc(S.user.name)}</h2><div class="phone">${fmtPhone(S.user.phone)}</div><span class="member">${fx.crown.replace('<svg','<svg width="24" height="24"')}${LIVE ? 'Thành viên' : 'Thành viên bạc'} ${ic('chevRight')}</span></div></div>
+          <div class="pc-top" data-menu="account"><div class="avatar"><img src="avatar.jpg" alt="${esc(S.user.name || '')}"><span class="cam">${ic('camera')}</span></div>
+            <div class="pc-info"><h2>${esc(S.user.name || 'Khách hàng')}</h2><div class="phone">${fmtPhone(S.user.phone)}</div><span class="member">${fx.crown.replace('<svg','<svg width="24" height="24"')}${LIVE ? 'Thành viên' : 'Thành viên bạc'} ${ic('chevRight')}</span></div></div>
           <div class="stats"><button class="stat pts" data-menu="points"><span class="ic">${fx.coin}</span><span style="text-align:left"><small>Điểm tích lũy</small><b>${LIVE ? S.points : 820} điểm</b></span>${ic('chevRight', 'ch')}</button>
             <button class="stat cp" data-menu="coupons"><span class="ic">${fx.giftSm}</span><span style="text-align:left"><small>Ưu đãi của bạn</small><b>${LIVE ? PROMOS.length : 3} mã giảm giá</b></span>${ic('chevRight', 'ch')}</button></div>
         </div>
@@ -592,13 +617,14 @@
           ${LIVE ? menuItem('pushset', ic('bell'), '', 'Thông báo đơn hàng', 'Nhận tin khi đơn đổi trạng thái') : ''}
           ${LIVE ? menuItem('policy', ic('doc'), '', 'Chính sách & Điều khoản', 'Điều khoản sử dụng, bảo mật thông tin') : menuItem('settings', ic('gear'), '', 'Cài đặt', 'Ngôn ngữ, thông báo, quyền riêng tư')}
           ${menuItem('logout', ic('logout'), '', 'Đăng xuất', 'Thoát khỏi tài khoản hiện tại', 'danger')}
-        </div><div class="pad-bottom"></div>`;
+        </div><div id="profile-hot">${hotCarouselHtml()}</div><div class="pad-bottom"></div>`;
     } else {
       el.innerHTML = `
         <div class="hero" style="padding-bottom:50px"><div style="padding-top:34px"><div class="page-title" style="font-size:28px">Cá nhân</div><p class="page-sub">Đăng nhập để quản lý đơn hàng,<br>địa chỉ và ưu đãi của bạn</p></div></div>
         <div class="guest-card"><div class="guest-top"><div class="ghost">${fx.guestUser}</div>
           <div><h2>Bạn chưa đăng nhập</h2><p>Đăng nhập hoặc đăng ký để trải nghiệm đầy đủ tính năng và nhận nhiều ưu đãi hấp dẫn từ Tam Nông Ăn Gì!</p></div></div>
           <div class="guest-btns"><button class="btn primary" data-auth="login">${ic('login')}Đăng nhập</button><button class="btn outline" data-auth="register">${ic('user')}Đăng ký</button></div></div>
+        <div id="profile-hot">${hotCarouselHtml()}</div>
         <div class="group-title">Tiện ích khác</div>
         <div class="menu">
           ${menuItem('help', ic('headset'), '', 'Trung tâm hỗ trợ', 'Giải đáp thắc mắc, liên hệ chúng tôi')}
@@ -608,6 +634,7 @@
           ${LIVE ? '' : menuItem('notif', fx.bellR, 'red', 'Cài đặt thông báo', 'Quản lý thông báo và nhận ưu đãi')}
         </div><div class="pad-bottom"></div>`;
     }
+    startHotRail();
   }
 
   /* ---------------- AUTH ---------------- */
@@ -988,7 +1015,11 @@
     if (!renderers[tab]) tab = 'home';
     S.tab = tab; hideShopPage();
     $$('.view').forEach(v => v.classList.remove('active'));
-    renderers[tab]();
+    try { renderers[tab](); }
+    catch (err) {
+      console.error('Lỗi hiển thị tab ' + tab, err);
+      $('#view-' + tab).innerHTML = `<div class="empty" style="padding:90px 24px 24px"><b>Không hiển thị được trang này</b>Vui lòng thử lại.<div style="margin-top:16px"><button class="btn primary" onclick="location.reload()">Tải lại trang</button></div></div>`;
+    }
     const v = $('#view-' + tab); v.classList.add('active');
     if (tab !== 'home' || true) v.scrollTop = 0;
     $('#app').classList.toggle('no-nav', tab === 'auth');
@@ -1342,6 +1373,7 @@
     if (a === 'svc-errand') return openService('errand');
     if (a === 'spin') return tnSpin();
     if (a === 'order-now') return $('#shops-anchor').scrollIntoView({ behavior:'smooth', block:'start' });
+    if (a === 'hot-all') { S.home.sector = 'food'; S.home.cat = 'Bán chạy'; S.home.q = ''; S.home.sort = 'default'; go('home'); return; }
     if (a === 'see-all') { S.home.cat = 'Tất cả'; S.home.q = ''; S.home.sort = 'default'; renderHome(); return toast('Đang hiển thị tất cả'); }
     if (a === 'fav-all') { $('#fav-body').scrollIntoView({ behavior:'smooth' }); return; }
     if (a === 'orders-search') { S.orders.search = !S.orders.search; if (!S.orders.search) S.orders.q = ''; renderOrders(); if (S.orders.search) $('#orders-q').focus(); return; }
@@ -1566,6 +1598,7 @@
         if (S.tab === 'home' && $('#home-list')) $('#home-list').innerHTML = shopListHtml();
         else if (S.tab === 'favorites' && $('#fav-body')) { $('#fav-body').innerHTML = favBody(); bindFavSort(); }
         else if (S.tab === 'orders') rebuildOrders();
+        else if (S.tab === 'profile' && $('#profile-hot')) { $('#profile-hot').innerHTML = hotCarouselHtml(); }
       };
       FB.watchShops((l, err) => {
         if (err) return toast('Không tải được danh sách quán');

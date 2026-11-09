@@ -917,3 +917,28 @@ body.tab-home .slot{display:flex}
 .sp-cartbar.empty{background:#ccc}
 .sp-cartbar,.sp-cartbar span,.sp-cartbar b{color:var(--blue)}
 .sp-cartbar.empty,.sp-cartbar.empty span,.sp-cartbar.empty b{color:#666}
+
+/* ===== Quán hot: hiệu ứng chuyển động ===== */
+.tn-in{opacity:0;animation:tnIn .55s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d,0ms)}
+@keyframes tnIn{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+.tn-hot,.tn-card{transition:transform .2s ease,box-shadow .2s ease}
+.tn-hot:active,.tn-card:active{transform:scale(.97)}
+.tn-hot img,.tn-card img{transition:transform .35s ease}
+.tn-hot:hover img,.tn-card:hover img{transform:scale(1.06)}
+.tn-rank{position:absolute;left:0;top:0;min-width:26px;height:26px;display:grid;place-items:center;background:linear-gradient(135deg,#ff8a00,#ff3d3d);color:#fff;font:800 13px var(--font-h,inherit);border-radius:14px 0 12px 0;z-index:1}
+.tn-rb{background:linear-gradient(90deg,#ff3d3d,#ff8a00,#ff3d3d);background-size:200% 100%}
+.tn-rb2{right:auto;left:10px;top:10px;transform:none;padding:3px 10px;border-radius:8px;z-index:1}
+.tn-card{position:relative}
+.tn-hs-auto{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.tn-hs-auto .tn-card{scroll-snap-align:start}
+.tn-flame{display:inline-grid;transform-origin:50% 90%}
+@media (prefers-reduced-motion:no-preference){
+  .tn-flame{animation:tnFlame 1.4s ease-in-out infinite}
+  .tn-rb{animation:tnShine 2.2s linear infinite}
+  .tn-fx{animation:tnIn .5s ease both}
+  .tn-hot:nth-of-type(odd) .tn-tags span:first-child{animation:tnPulse 2s ease-in-out infinite}
+}
+@media (prefers-reduced-motion:reduce){.tn-in{opacity:1;animation:none}}
+@keyframes tnFlame{0%,100%{transform:scale(1) rotate(-4deg)}50%{transform:scale(1.18) rotate(5deg)}}
+@keyframes tnShine{to{background-position:-200% 0}}
+@keyframes tnPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
