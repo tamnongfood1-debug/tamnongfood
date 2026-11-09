@@ -620,8 +620,7 @@
     const el = $('#view-profile');
     if (S.user) {
       el.innerHTML = `
-        <div class="hero" style="padding-bottom:110px"><div style="padding-top:34px"><div class="page-title" style="font-size:28px">Cá nhân</div><p class="page-sub">Quản lý tài khoản của bạn</p></div></div>
-        <div class="profile-card" style="margin-top:-96px">
+        <div class="profile-card" style="margin-top:calc(16px + env(safe-area-inset-top,0px))">
           <div class="pc-top" data-menu="account"><div class="avatar"><img src="avatar.jpg" alt="${esc(S.user.name || '')}"><span class="cam">${ic('camera')}</span></div>
             <div class="pc-info"><h2>${esc(S.user.name || 'Khách hàng')}</h2><div class="phone">${fmtPhone(S.user.phone)}</div><span class="member">${fx.crown.replace('<svg','<svg width="24" height="24"')}${LIVE ? 'Thành viên' : 'Thành viên bạc'} ${ic('chevRight')}</span></div></div>
           <div class="stats"><button class="stat pts" data-menu="points"><span class="ic">${fx.coin}</span><span style="text-align:left"><small>Điểm tích lũy</small><b>${LIVE ? S.points : 820} điểm</b></span>${ic('chevRight', 'ch')}</button>
