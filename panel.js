@@ -1,7 +1,7 @@
 /* Khung dùng chung cho 3 trang quản lý: đăng nhập, kiểm tra quyền, tiện ích hiển thị */
-import * as fb from './fb.js?v=20261109e';
+import * as fb from './fb.js?v=20261109i';
 export { fb };
-import { parseMenuText, parseMenuSheets, readSheets, downloadMenuTemplate } from './bulk.js?v=20261109e';
+import { parseMenuText, parseMenuSheets, readSheets, downloadMenuTemplate } from './bulk.js?v=20261109i';
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));

@@ -362,7 +362,7 @@
   const HOT = { i:0, pause:0 };
   const hasDish = s => s.menu.some(m => m[2] !== false && m[0]);
   const hotShops = n => {
-    const all = SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false)
+    const all = SHOPS.filter(s => sectorOf(s) === 'food' && s.open !== false && s.hotHome === true)   /* chỉ quán Admin đã tick "Quán hot" */
       .sort((a, b) => (b.hot - a.hot) || (b.featured - a.featured) || (b.sold - a.sold) || (b.rate - a.rate));
     const withMenu = all.filter(hasDish);
     return (withMenu.length ? withMenu : all).slice(0, n);   // chỉ quay vòng các quán đã có món; chưa quán nào có món thì mới hiện quán trống
@@ -1165,7 +1165,7 @@
   /* ----- bản đồ chọn điểm: kéo bản đồ để đưa ghim đỏ vào đúng chỗ ----- */
   /* ----- Bản đồ: ưu tiên Goong (khóa trong goong-config.js); chưa có khóa hoặc Goong lỗi thì dùng Leaflet + OpenStreetMap/Esri ----- */
   let GOONG = { map:'', api:'' }, GOONG_ERR = '';
-  import('./goong-config.js?v=20261109e').then(m => { GOONG = { map:String(m.GOONG_MAP_KEY || '').trim(), api:String(m.GOONG_API_KEY || '').trim() }; }).catch(() => {});
+  import('./goong-config.js?v=20261109i').then(m => { GOONG = { map:String(m.GOONG_MAP_KEY || '').trim(), api:String(m.GOONG_API_KEY || '').trim() }; }).catch(() => {});
   const LF = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.', GJ = 'https://cdn.jsdelivr.net/npm/@goongmaps/goong-js@1.0.9/dist/goong-js.';
   const loadAsset = (tag, attrs) => new Promise((ok, no) => { const e = document.createElement(tag); Object.assign(e, attrs); e.onload = ok; e.onerror = () => no(new Error(tag)); document.head.appendChild(e); });
   const loadLeaflet = () => window.L ? Promise.resolve() : Promise.all([loadAsset('link', { rel:'stylesheet', href:LF + 'css' }), loadAsset('script', { src:LF + 'js' })]);
@@ -1625,7 +1625,7 @@
     const cr = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().getTime() : (+d._cr || 0), sold = +d.sold || 0;   // sold: số đơn đã giao, Admin cập nhật tự động
     return {
       id:d.id, _d:d, sector:(['fresh', 'fashion', 'service'].includes(d.sector) ? d.sector : 'food'), name:esc(d.name), cat:esc(cat), homeCat:esc(cat), img:esc(d.img || 'hero.svg'), rate:+d.rate || 0, rc:esc(d.rc || ''),
-      eta:esc(d.eta || '15 - 30 phút'), ship:free ? Math.round(free / 1000) + 'K' : '', shipFee:d.shipFee ?? 15000, freeShipMin:free, freeShipAll:!!d.freeShipAll, sale:+d.sale || 0, order:(d.order == null || isNaN(+d.order)) ? 9999 : +d.order, featured:!!d.featured, sold, hotFlag:d.hot === true ? 1 : 0, hot:d.hot === true || sold >= 10, created:cr, isNew:d.isNew === true || (cr > 0 && Date.now() - cr < 30 * 864e5),
+      eta:esc(d.eta || '15 - 30 phút'), ship:free ? Math.round(free / 1000) + 'K' : '', shipFee:d.shipFee ?? 15000, freeShipMin:free, freeShipAll:!!d.freeShipAll, sale:+d.sale || 0, order:(d.order == null || isNaN(+d.order)) ? 9999 : +d.order, featured:!!d.featured, sold, hotFlag:d.hot === true ? 1 : 0, hotHome:d.hotHome === true, hot:d.hot === true || sold >= 10, created:cr, isNew:d.isNew === true || (cr > 0 && Date.now() - cr < 30 * 864e5),
       group:((d.group && d.group.length) ? d.group : [cat.split('•')[0].trim()]).map(esc), desc:esc(d.desc || ''),
       menu:(d.menu || []).map(m => [esc(m.name), +m.price || 0, m.available !== false, esc(m.cat || ''), esc(m.img || ''), esc(m.desc || ''), esc(m.sizes || ''), esc(m.colors || ''), esc(m.mat || '')]), lat:d.lat ?? null, lng:d.lng ?? null, get open() { return shopOpenNow(d); }, phone:esc(d.phone || ''), address:esc(d.address || ''),
     };
@@ -1714,7 +1714,7 @@
   }
 
   /* Tải sẵn lớp dữ liệu Firebase ngay từ đầu (song song với việc vẽ trang) thay vì đợi vẽ xong mới tải */
-  const fbReady = import('./fb.js?v=20261109e'); fbReady.catch(() => {});
+  const fbReady = import('./fb.js?v=20261109i'); fbReady.catch(() => {});
   /* ---- Quán hot: chấm tròn, vuốt, tạm dừng khi chạm; Trang quán: tìm món, chia sẻ, thanh tiêu đề ---- */
   document.addEventListener('click', e => {
     const g = e.target.closest && e.target.closest('[data-hotgo]');
@@ -1748,7 +1748,7 @@
     history.replaceState(null, '', '#' + S.tab);
     startSlider();
   }
-  import('./firebase-config.js?v=20261109e')
+  import('./firebase-config.js?v=20261109i')
     .then(m => { LIVE = !!m.firebaseConfig.apiKey && !/^(DAN_|YOUR_)/.test(m.firebaseConfig.apiKey); })
     .catch(() => {})
     .then(() => { if (LIVE) prepareLive(); boot(); if (LIVE) connectLive(); });
